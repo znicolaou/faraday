@@ -1,19 +1,9 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import os
-os.environ["OMP_NUM_THREADS"] = "1"
-from dolfin import *
-from mshr import Cylinder, generate_mesh
-import numpy as np
-from scipy.integrate import ode
-from scipy.signal import argrelextrema
-from scipy.stats import linregress
-from scipy.interpolate import griddata
-from scipy.special import jnp_zeros, jn_zeros, jn
 import time
 import argparse
 import sys
-set_log_level(30)
 
 #Command line arguments
 parser = argparse.ArgumentParser(description='Moving mesh simulation for inviscid Faraday waves with inhomogeneous substrate.')
@@ -49,11 +39,25 @@ parser.add_argument("--bmesh", type=int, choices = [0, 1], default = 1, dest='bm
 parser.add_argument("--nonlinear", type=int, choices = [0, 1], default = 0, dest='nonlinear', help='Flag to include nonlinear terms')
 parser.add_argument("--geometry", type=str, choices = ['rectangle', 'cylinder', 'box'], default = 'rectangle', dest='geometry', help='Mesh geometry. Options are rectangle, cylinder, and box.')
 parser.add_argument("--contact", type=str, choices = ['stick', 'slip', 'periodic'], default = 'stick', dest='contact', help='Contact line boundary conditions. Options are stick, slip, and periodic. periodic is not available for cylinder geometry.')
+parser.add_argument("--nthreads", type=int, default = 1, dest='nthreads', help='Number of threads to allow parallel computations to run over.')
 args = parser.parse_args()
 
 if(args.geometry=='cylinder' and args.contact=='periodic'):
 	print('Periodic boundaries not supported for cylinders!')
 	quit()
+
+#We must set OMP_NUM_THREADS before importing packages to parallelize with the specified number of threads
+os.environ["OMP_NUM_THREADS"] = str(args.nthreads)
+from dolfin import *
+from mshr import Cylinder, generate_mesh
+import numpy as np
+from scipy.integrate import ode
+from scipy.signal import argrelextrema
+from scipy.stats import linregress
+from scipy.interpolate import griddata
+from scipy.special import jnp_zeros, jn_zeros, jn
+set_log_level(30)
+
 
 #Define timescales
 omega=2.0*np.pi*args.freq
