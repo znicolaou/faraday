@@ -2,7 +2,7 @@
 The file faraday.py contains python code to integrate the equations of motion for inviscid Faraday waves in inhomogeneous domains with the finite element method. The files plotrectangle.nb, plotcylinder.nb, and plotbox.nb are Mathematica notebooks to plot results from simulations.
 
 # System requirements
-The python code has been run with anaconda 2.7, which can be downloaded here: https://www.anaconda.com/distribution/.  The finite element method uses the [FEniCS Project](https://fenicsproject.org/) implementation, while the time integration uses [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html) implementation of the Real-valued Variable-coefficient Ordinary Differential Equation solver. The script requires packes numpy, scipy, fenics-2018.1.0, and mshr-2018.1.0, which can be installed after installing anaconda with the shell command `conda install -c conda-forge fenics=2018.1.0 mshr=2018.1.0 numpy scipy`.   
+The python code has been run with anaconda 2.7, which can be downloaded here: https://www.anaconda.com/distribution/.  The finite element method uses the [FEniCS Project](https://fenicsproject.org/) implementation, while the time integration uses [SciPy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html) implementation of the Real-valued Variable-coefficient Ordinary Differential Equation solver. The script requires packes numpy, scipy, fenics-2018.1.0, and mshr-2018.1.0, which can be installed in a new environment after installing anaconda with the shell command `conda create -n fenics_env -c conda-forge numpy scipy fenics=2018.1.0 mshr=2018.1.0`.  Activate the environment with `source activate fenics_env` to run the script.
 
 # Usage
 Running the script `./faraday.py -h` will produce the following usage message:
@@ -72,4 +72,11 @@ optional arguments:
                         slip, and periodic. periodic is not available for
                         cylinder geometry.
 ```
+
+# Input file formats
+To do: document the filebaseic.dat and filebasesubstrate.dat file formats.
+
+# Output file formats
+To do: document the filebase.txt, filebasefs.dat, and filebaseout.npy formats.
+
 
