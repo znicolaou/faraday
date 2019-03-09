@@ -8,20 +8,20 @@ The python code has been run with anaconda 2.7, which can be downloaded here: ht
 Running the script `./faraday.py -h` will produce the following usage message:
 
 ```
-usage: faraday.py [-h] [--frequency FREQ] [--gravity G]  
-                  [--acceleration ACCELERATION] [--width WIDTH]  
-                  [--length LENGTH] [--height HEIGHT] [--radius RADIUS]  
-                  [--tension SIGMA] [--density RHO] [--time SIMTIME]  
-                  [--steps STEPS] [--output {0,1}] [--iseed ISEED]  
-                  [--iamp IAMP] [--imodes IMODES] [--sseed SSEED]  
-                  [--samp SAMP] [--smodes SMODES] [--rtol RTOL] [--atol ATOL]  
-                  [--damp1 DAMP1] [--damp3 DAMP2] [--xmesh XMESH]  
-                  [--ymesh YMESH] [--zmesh ZMESH] [--threshold THRS]  
-                  --filebase OUTPUT [--refinement REFINEMENT] [--bmesh {0,1}]  
-                  [--nonlinear {0,1}] [--geometry {rectangle,cylinder,box}]  
-                  [--contact {stick,slip,periodic}]  
+usage: faraday.py [-h] [--frequency FREQ] [--gravity G]
+                  [--acceleration ACCELERATION] [--width WIDTH]
+                  [--length LENGTH] [--height HEIGHT] [--radius RADIUS]
+                  [--tension SIGMA] [--density RHO] [--time SIMTIME]
+                  [--steps STEPS] [--output {0,1}] [--iseed ISEED]
+                  [--iamp IAMP] [--imodes IMODES] [--sseed SSEED]
+                  [--samp SAMP] [--smodes SMODES] [--rtol RTOL] [--atol ATOL]
+                  [--damp1 DAMP1] [--damp3 DAMP2] [--xmesh XMESH]
+                  [--ymesh YMESH] [--zmesh ZMESH] [--threshold THRS]
+                  --filebase OUTPUT [--refinement REFINEMENT] [--bmesh {0,1}]
+                  [--nonlinear {0,1}] [--geometry {rectangle,cylinder,box}]
+                  [--contact {stick,slip,periodic}] [--nthreads NTHREADS]
 
-Moving mesh simulation for inviscid Faraday waves with inhomogeneous  
+Moving mesh simulation for inviscid Faraday waves with inhomogeneous
 substrate.
 
 optional arguments:
@@ -71,6 +71,8 @@ optional arguments:
                         Contact line boundary conditions. Options are stick,
                         slip, and periodic. periodic is not available for
                         cylinder geometry.
+  --nthreads NTHREADS   Number of threads to allow parallel computations to
+                        run over.
 ```
 
 # Input file formats
