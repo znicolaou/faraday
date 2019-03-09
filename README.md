@@ -7,7 +7,7 @@ The python code has been run with anaconda 2.7, which can be downloaded here: ht
 # Usage
 Running the script `./faraday.py -h` will produce the following usage message:
 
-```console
+```
 usage: faraday.py [-h] [--frequency FREQ] [--gravity G]  
                   [--acceleration ACCELERATION] [--width WIDTH]  
                   [--length LENGTH] [--height HEIGHT] [--radius RADIUS]  
