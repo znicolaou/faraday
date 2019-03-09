@@ -7,29 +7,16 @@ The python code has been run with anaconda 2.7, which can be downloaded here: ht
 # Usage
 Running the script `./faraday.py` will produce the following usage message:
 
-
-usage: faraday.py [-h] [--frequency FREQ] [--gravity G]
-
-                  [--acceleration ACCELERATION] [--width WIDTH]
-                  
-                  [--length LENGTH] [--height HEIGHT] [--radius RADIUS]
-                  
-                  [--tension SIGMA] [--density RHO] [--time SIMTIME]
-                  
-                  [--steps STEPS] [--output {0,1}] [--iseed ISEED]
-                  
-                  [--iamp IAMP] [--imodes IMODES] [--sseed SSEED]
-                  
-                  [--samp SAMP] [--smodes SMODES] [--rtol RTOL] [--atol ATOL]
-                  
-                  [--damp1 DAMP1] [--damp3 DAMP2] [--xmesh XMESH]
-                  
-                  [--ymesh YMESH] [--zmesh ZMESH] [--threshold THRS]
-                  
-                  --filebase OUTPUT [--refinement REFINEMENT] [--bmesh {0,1}]
-                  
-                  [--nonlinear {0,1}] [--geometry {rectangle,cylinder,box}]
-                  
-                  [--contact {stick,slip,periodic}]
-                  
-faraday.py: error: the following arguments are required: --filebase
+usage: faraday.py [-h] [--frequency FREQ] [--gravity G]  
+                  [--acceleration ACCELERATION] [--width WIDTH]  
+                  [--length LENGTH] [--height HEIGHT] [--radius RADIUS]  
+                  [--tension SIGMA] [--density RHO] [--time SIMTIME]  
+                  [--steps STEPS] [--output {0,1}] [--iseed ISEED]  
+                  [--iamp IAMP] [--imodes IMODES] [--sseed SSEED]  
+                  [--samp SAMP] [--smodes SMODES] [--rtol RTOL] [--atol ATOL]  
+                  [--damp1 DAMP1] [--damp3 DAMP2] [--xmesh XMESH]  
+                  [--ymesh YMESH] [--zmesh ZMESH] [--threshold THRS]  
+                  --filebase OUTPUT [--refinement REFINEMENT] [--bmesh {0,1}]  
+                  [--nonlinear {0,1}] [--geometry {rectangle,cylinder,box}]  
+                  [--contact {stick,slip,periodic}]  
+faraday.py: error: the following arguments are required: --filebase  
