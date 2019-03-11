@@ -7,6 +7,7 @@ import sys
 
 #Command line arguments
 parser = argparse.ArgumentParser(description='Moving mesh simulation for inviscid Faraday waves with inhomogeneous substrate.')
+parser.add_argument("--filebase", type=str, required=True, dest='output', help='Base string for file output')
 parser.add_argument("--frequency", type=float, default=23.0, dest='freq', help='Driving frequency in Hertz')
 parser.add_argument("--gravity", type=float, default=980.0, dest='g', help='Gravitational acceleration in cm/s^2')
 parser.add_argument("--acceleration", type=float, default=1.0, dest='acceleration', help='Driving acceleration in terms of gravitational acceleration')
@@ -33,7 +34,6 @@ parser.add_argument("--xmesh", type=int, default=10, dest='xmesh', help='Lateral
 parser.add_argument("--ymesh", type=int, default=5, dest='ymesh', help='Lateral mesh refinement')
 parser.add_argument("--zmesh", type=int, default=5, dest='zmesh', help='Vertical mesh refinement')
 parser.add_argument("--threshold", type=float, default=3.0, dest='thrs', help='Threshold change in log norm magnitude to stop integration')
-parser.add_argument("--filebase", type=str, required=True, dest='output', help='Base string for file output')
 parser.add_argument("--refinement", type=int, default=0, dest='refinement', help='Number of refinements for top')
 parser.add_argument("--bmesh", type=int, choices = [0, 1], default = 1, dest='bmesh', help='Flag to move boundary mesh in time stepping. This is faster and tentatively more accurate than the alternative mesh movement, but suffers numerical instabilities for large deviations.')
 parser.add_argument("--nonlinear", type=int, choices = [0, 1], default = 0, dest='nonlinear', help='Flag to include nonlinear terms')
