@@ -120,6 +120,8 @@ else:
 	nt=len(idx_top2)
 #indices of top coordinates list that don't lie on the contact line
 top2pos=np.array([np.argwhere(idx_top2==it)[0,0] for it in idx_top])
+#indices of top coordinates that lie on the contact line
+contactpos=np.array(np.argwhere([not np.any(idx_top==it) for it in idx_top2])[:,0])
 #indices of bottom coordinates
 idx_bottom = np.array(np.where(np.abs(mesh.coordinates()[:,dim]) < 10*DOLFIN_EPS)[0])
 nb=len(idx_bottom)
@@ -164,9 +166,11 @@ else:
 			X = mesh.coordinates()[idx_top2[k],0]
 			val=0.0
 			for n1 in range(1,args.imodes):
-				val+=isin[n1]*np.sin(2*np.pi*n1*X/tankWidth)
+				if not args.contact == 'slip':
+					val+=isin[n1]*np.sin(2*np.pi*n1*X/tankWidth)
 			for n1 in range(1,args.imodes):
-				val+=icos[n1]*np.cos(2*np.pi*n1*X/tankWidth)
+				if not args.contact == 'stick':
+					val+=icos[n1]*np.cos(2*np.pi*n1*X/tankWidth)
 			y0[k] = val
 	elif(args.geometry=='cylinder'):
 		isin=2*args.iamp*(np.random.random((args.imodes,args.imodes))-0.5)
@@ -398,13 +402,13 @@ bc_top = DirichletBC(V, bc_exp_top, boundary_T, method="pointwise", check_midpoi
 dydt = np.zeros(nt*2, float)
 
 #Function for finding curvature away from the contact line
-#Interpolate the mesh to find finite differences, using spacing one quarter the mesh lengh scale
-delta=0.25*meshlen
+#Interpolate the mesh to find finite differences, using spacing one tenth the mesh lengh scale
+delta=0.1*meshlen
 points=[]
 if(dim == 2):
-	if args.contact == 'stick' or args.contact == 'slip':
-		for k in range(len(idx_top)):
-			x=mesh.coordinates()[idx_top[k],:dim]
+	if args.contact == 'stick':
+		for k in range(len(idx_top2)):
+			x=mesh.coordinates()[idx_top2[k],:dim]
 			points.append(x)
 			points.append(x+[delta,0.0])
 			points.append(x-[delta,0.0])
@@ -412,6 +416,61 @@ if(dim == 2):
 			points.append(x-[0.0,delta])
 			points.append(x+[delta,delta])
 			points.append(x-[delta,delta])
+	elif args.contact == 'slip':
+		for k in range(len(idx_top2)):
+			x=mesh.coordinates()[idx_top2[k],:dim]
+			if not k in contactpos:
+				points.append(x)
+				points.append(x+[delta,0.0])
+				points.append(x-[delta,0.0])
+				points.append(x+[0.0,delta])
+				points.append(x-[0.0,delta])
+				points.append(x+[delta,delta])
+				points.append(x-[delta,delta])
+			#This case is annoying, because each side and each corner really need to be considered...
+			elif args.geometry == 'box':
+				if x[0]==0:
+					points.append(x)
+					points.append(x+[delta,0.0])
+					points.append(x-[delta,0.0])
+					points.append(x+[0.0,delta])
+					points.append(x-[0.0,delta])
+					points.append(x+[delta,delta])
+					points.append(x-[delta,delta])
+			#This does not work, because contact line points near the coordinate axes have stencils outside the convex hull. We should rotate the stencil...
+			elif args.geometry == 'cylinder':
+				if x[0]>0 and x[1]>0:
+					points.append(x+[-delta, -delta])
+					points.append(x+[-10*DOLFIN_EPS,-2*delta])
+					points.append(x+[-2*delta,-delta])
+					points.append(x+[-delta,-10*DOLFIN_EPS])
+					points.append(x+[-delta,-2*delta])
+					points.append(x+[-10*DOLFIN_EPS,-10*DOLFIN_EPS])
+					points.append(x+[-2*delta,-2*delta])
+				if x[0]>0 and x[1]<0:
+					points.append(x+[-delta,delta])
+					points.append(x+[-10*DOLFIN_EPS,delta])
+					points.append(x+[-2*delta,delta])
+					points.append(x+[-delta,2*delta])
+					points.append(x+[-delta,10*DOLFIN_EPS])
+					points.append(x+[-2*delta,2*delta])
+					points.append(x+[-10*DOLFIN_EPS,10*DOLFIN_EPS])
+				if x[0]<0 and x[1]>0:
+					points.append(x+[delta,-delta])
+					points.append(x+[2*delta,-delta])
+					points.append(x+[10*DOLFIN_EPS,-delta])
+					points.append(x+[delta,-10*DOLFIN_EPS])
+					points.append(x+[delta,-2*delta])
+					points.append(x+[10*DOLFIN_EPS,-10*DOLFIN_EPS])
+					points.append(x+[2*delta,-2*delta])
+				if x[0]<0 and x[1]<0:
+					points.append(x+[delta,delta])
+					points.append(x+[2*delta,delta])
+					points.append(x+[10*DOLFIN_EPS,delta])
+					points.append(x+[delta,2*delta])
+					points.append(x+[delta,10*DOLFIN_EPS])
+					points.append(x+[2*delta,2*delta])
+					points.append(x+[10*DOLFIN_EPS,10*DOLFIN_EPS])
 	elif args.contact == 'periodic':
 		for k in range(len(idx_top2)):
 			x=mesh.coordinates()[idx_top2[k],:dim]
@@ -423,12 +482,30 @@ if(dim == 2):
 			points.append(np.array([np.mod(x[0]+delta, tankLength),np.mod(x[1]+delta, tankWidth)]))
 			points.append(np.array([np.mod(x[0]-delta, tankLength),np.mod(x[1]-delta, tankWidth)]))
 else:
-	for k in range(len(idx_top)):
-		x=mesh.coordinates()[idx_top[k],:dim]
-		points.append(x)
-		points.append(x+delta)
-		points.append(x-delta)
-	frequencies = np.concatenate((np.arange(0,int(nt/2),1),1+np.arange(int(nt/2),nt-1,1)-nt))*2*np.pi/tankWidth
+	if args.contact == 'stick':
+		for k in range(len(idx_top)):
+			x=mesh.coordinates()[idx_top[k],:dim]
+			points.append(x)
+			points.append(x+delta)
+			points.append(x-delta)
+	elif args.contact == 'slip':
+		for k in range(len(idx_top2)):
+			x=mesh.coordinates()[idx_top2[k],:dim]
+			if not k in contactpos:
+				points.append(x)
+				points.append(x+delta)
+				points.append(x-delta)
+			else:
+				if x[0] == 0:
+					points.append(x+delta)
+					points.append(x+2*delta)
+					points.append(x)
+				if x[0] == tankWidth:
+					points.append(x-delta)
+					points.append(x)
+					points.append(x-2*delta)
+	elif args.contact == 'periodic':
+		frequencies = np.concatenate((np.arange(0,int(nt/2),1),1+np.arange(int(nt/2),nt-1,1)-nt))*2*np.pi/tankWidth
 def curvature_top(y):
 	if(dim == 1):
 		if(args.contact == 'stick'):
@@ -453,7 +530,6 @@ def curvature_top(y):
 				curve0=hxx
 			ret=[np.append(hx,hx[0]),np.append(curve0,curve0[0])]
 		elif args.contact == 'slip':
-				#for simplicity, the curvature on the contact line is neglected in the slip case
 				vals=griddata(mesh.coordinates()[idx_top2,:dim], tankHeight+y[:nt], np.array(points), method='cubic')
 				hx=(vals[1::3]-vals[2::3])/(2*delta)
 				hxx=(vals[1::3]+vals[2::3]-2*vals[0::3])/(delta*delta)
@@ -461,15 +537,14 @@ def curvature_top(y):
 					curve2=hxx/(1+hx*hx)**(1.5)
 				else:
 					curve2=hxx
-				curve=np.zeros(nt)
-				Hx=np.zeros(nt)
-				curve[top2pos]=curve2[:,0]
-				Hx[top2pos]=hx[:,0]
-				ret=[Hx,curve]
+				curve2[contactpos]/=2 #this is a numerical-empirical contact line slip force adjustment that is stable. Maybe it makes sense physically.
+				ret=[hx[:,0],curve2[:,0]]
 	if(dim == 2):
 		if args.contact == 'slip':
-			#for simplicity, the curvature on the contact line is neglected in the slip case
 			vals=griddata(mesh.coordinates()[idx_top2,:dim], tankHeight+y[:nt], np.array(points), method='cubic')
+			nans=np.array(np.where(np.isnan(vals)))
+			print(np.array(points)[nans])
+			quit()
 			hx=(vals[1::7]-vals[2::7])/(2*delta)
 			hy=(vals[3::7]-vals[4::7])/(2*delta)
 			hxx=(vals[1::7]+vals[2::7]-2*vals[0::7])/(delta*delta)
@@ -479,13 +554,9 @@ def curvature_top(y):
 				curve2=(hxx+hyy+hxx*hy*hy+hyy*hx*hx-2*hx*hy*hxy)/(1+hx*hx+hy*hy)**(1.5)
 			else:
 				curve2=hxx+hyy
-			curve=np.zeros(nt)
-			Hx=np.zeros(nt)
-			Hy=np.zeros(nt)
-			curve[top2pos]=curve2
-			Hx[top2pos]=hx
-			Hy[top2pos]=hy
-			ret=[Hx,Hy,curve]
+			print(curve2[contactpos])
+			curve2[contactpos]/=2 #this is a numerical-empirical contact line slip force adjustment that is stable. Maybe it makes sense physically.
+			ret=[hx,hy,curve2]
 		elif args.contact == 'stick':
 			mvals=mesh.coordinates()[idx_top2,dim]
 			mvals[top2pos]=tankHeight+y[:nt]
