@@ -246,9 +246,9 @@ if(args.geometry=='rectangle'):
 	for k in range(nb):
 		X = mesh.coordinates()[idx_bottom[k],0]
 		val=0.0
-		for n1 in range(1,len(ssin)):
+		for n1 in range(args.smodes):
 			val+=ssin[n1]*np.sin(2*np.pi*n1*X/tankLength)
-		for n1 in range(1,len(scos)):
+		for n1 in range(args.smodes):
 			val+=scos[n1]*np.cos(2*np.pi*n1*X/tankLength)
 		h0[k] = val
 elif(args.geometry=='cylinder'):
@@ -257,14 +257,14 @@ elif(args.geometry=='cylinder'):
 		r=(X*X+Y*Y)**(0.5)
 		theta=np.arctan2(Y,X)
 		val=0.0
-		for n1 in range(len(ssin)):
+		for n1 in range(args.smodes):
 			zeros=jn_zeros(n1,len(ssin)+1)
-			for n2 in range(len(ssin[n1])):
+			for n2 in range(args.smodes):
 				max=np.max([jn(n1,zeros[n2]*i/100) for i in range(101)])
 				val+=ssin[n1,n2]*jn(n1,zeros[n2]*r/tankRadius)/max*np.sin(n1*theta)
-		for n1 in range(len(scos)):
+		for n1 in range(args.smodes):
 			zeros=jn_zeros(n1,len(scos)+1)
-			for n2 in range(len(scos[n1])):
+			for n2 in range(args.smodes):
 				max=np.max([jn(n1,zeros[n2]*i/100) for i in range(101)])
 				val+=scos[n1,n2]*jn(n1,zeros[n2]*r/tankRadius)/max*np.cos(n1*theta)
 		h0[k] = val
@@ -528,10 +528,11 @@ def curvature_top(y):
 				hx=(vals[1::3]-vals[2::3])/(2*delta)
 				hxx=(vals[1::3]+vals[2::3]-2*vals[0::3])/(delta*delta)
 				if(args.nonlinear == 1):
-					curve2=hxx/(1+hx*hx)**(1.5)
+					curve=hxx/(1+hx*hx)**(1.5)
 				else:
-					curve2=hxx
-				ret=[hx[:,0],curve2[:,0]]
+					curve=hxx
+				curve[contactpos]/=2 #numerical-empirical reduction of contact line curvature. This may make sense physically, since half the point is "wet"
+				ret=[hx[:,0],curve[:,0]]
 	if(dim == 2):
 		if args.contact == 'slip':
 			vals=griddata(mesh.coordinates()[idx_top2,:dim], tankHeight+y[:nt], np.array(points), method='cubic')
@@ -541,9 +542,10 @@ def curvature_top(y):
 			hyy=(vals[3::7]+vals[4::7]-2*vals[0::7])/(delta*delta)
 			hxy=(vals[5::7]+vals[6::7]-vals[1::7]-vals[2::7]-vals[3::7]-vals[4::7]+2*vals[0::7])/(2*delta*delta)
 			if(args.nonlinear == 1):
-				curve2=(hxx+hyy+hxx*hy*hy+hyy*hx*hx-2*hx*hy*hxy)/(1+hx*hx+hy*hy)**(1.5)
+				curve=(hxx+hyy+hxx*hy*hy+hyy*hx*hx-2*hx*hy*hxy)/(1+hx*hx+hy*hy)**(1.5)
 			else:
-				curve2=hxx+hyy
+				curve=hxx+hyy
+			curve[contactpos]/=2 #numerical-empirical reduction of contact line curvature. This may make sense physically, since only half the point is "wet"
 			ret=[hx,hy,curve2]
 		elif args.contact == 'stick':
 			mvals=mesh.coordinates()[idx_top2,dim]
