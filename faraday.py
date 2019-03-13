@@ -401,10 +401,11 @@ bc_exp_top = DynamicFreeSurfaceCondition(element=V.ufl_element())
 bc_top = DirichletBC(V, bc_exp_top, boundary_T, method="pointwise", check_midpoint=False)
 dydt = np.zeros(nt*2, float)
 
-#Function for finding curvature away from the contact line
+#Function for finding curvature
 #Interpolate the mesh to find finite differences, using spacing one tenth the mesh lengh scale
 delta=0.1*meshlen
 points=[]
+thetas=np.zeros(nt) #TODO: store the theta that the stencil is rotated through for each k so we can rotate the gradient back
 if(dim == 2):
 	if args.contact == 'stick':
 		for k in range(len(idx_top2)):
@@ -430,6 +431,7 @@ if(dim == 2):
 			elif args.geometry == 'cylinder':
 				#On the contact line, rotate the stencil so that points remain in the convex hull.  The curvature and  dertivative products should be invariant.
 				theta=np.arctan2(x[0],x[1])-np.pi/4
+				thetas[k]=theta
 				rot=np.array([[np.cos(theta),np.sin(theta)],[-np.sin(theta),np.cos(theta)]])
 				points.append(x+np.dot(rot,[-delta,-delta]))
 				points.append(x+np.dot(rot,[0,-delta]))
@@ -457,6 +459,7 @@ if(dim == 2):
 					theta=np.pi
 				elif x[1]==tankWidth:
 					theta=0
+				thetas[k]=theta
 				rot=np.array([[np.cos(theta),np.sin(theta)],[-np.sin(theta),np.cos(theta)]])
 				points.append(x+np.dot(rot,[-delta,-delta]))
 				points.append(x+np.dot(rot,[0,-delta]))
@@ -546,7 +549,12 @@ def curvature_top(y):
 			else:
 				curve=hxx+hyy
 			curve[contactpos]/=2 #numerical-empirical reduction of contact line curvature. This may make sense physically, since only half the point is "wet"
-			ret=[hx,hy,curve2]
+			#Rotate the gradient back to the original coordinates for the contact line
+			Hx=hx
+			Hy=hy
+			Hx[contactpos] = np.array([np.cos(thetas[k])*hx[k]-np.sin(thetas[k])*hy[k] for k in contactpos])
+			Hy[contactpos] = np.array([np.sin(thetas[k])*hx[k]+np.cos(thetas[k])*hy[k] for k in contactpos])
+			ret=[Hx,Hy,curve]
 		elif args.contact == 'stick':
 			mvals=mesh.coordinates()[idx_top2,dim]
 			mvals[top2pos]=tankHeight+y[:nt]
