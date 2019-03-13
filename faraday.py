@@ -427,50 +427,44 @@ if(dim == 2):
 				points.append(x-[0.0,delta])
 				points.append(x+[delta,delta])
 				points.append(x-[delta,delta])
-			#This case is annoying, because each side and each corner really need to be considered...
-			elif args.geometry == 'box':
-				if x[0]==0:
-					points.append(x)
-					points.append(x+[delta,0.0])
-					points.append(x-[delta,0.0])
-					points.append(x+[0.0,delta])
-					points.append(x-[0.0,delta])
-					points.append(x+[delta,delta])
-					points.append(x-[delta,delta])
-			#This does not work, because contact line points near the coordinate axes have stencils outside the convex hull. We should rotate the stencil...
 			elif args.geometry == 'cylinder':
-				if x[0]>0 and x[1]>0:
-					points.append(x+[-delta, -delta])
-					points.append(x+[-10*DOLFIN_EPS,-2*delta])
-					points.append(x+[-2*delta,-delta])
-					points.append(x+[-delta,-10*DOLFIN_EPS])
-					points.append(x+[-delta,-2*delta])
-					points.append(x+[-10*DOLFIN_EPS,-10*DOLFIN_EPS])
-					points.append(x+[-2*delta,-2*delta])
-				if x[0]>0 and x[1]<0:
-					points.append(x+[-delta,delta])
-					points.append(x+[-10*DOLFIN_EPS,delta])
-					points.append(x+[-2*delta,delta])
-					points.append(x+[-delta,2*delta])
-					points.append(x+[-delta,10*DOLFIN_EPS])
-					points.append(x+[-2*delta,2*delta])
-					points.append(x+[-10*DOLFIN_EPS,10*DOLFIN_EPS])
-				if x[0]<0 and x[1]>0:
-					points.append(x+[delta,-delta])
-					points.append(x+[2*delta,-delta])
-					points.append(x+[10*DOLFIN_EPS,-delta])
-					points.append(x+[delta,-10*DOLFIN_EPS])
-					points.append(x+[delta,-2*delta])
-					points.append(x+[10*DOLFIN_EPS,-10*DOLFIN_EPS])
-					points.append(x+[2*delta,-2*delta])
-				if x[0]<0 and x[1]<0:
-					points.append(x+[delta,delta])
-					points.append(x+[2*delta,delta])
-					points.append(x+[10*DOLFIN_EPS,delta])
-					points.append(x+[delta,2*delta])
-					points.append(x+[delta,10*DOLFIN_EPS])
-					points.append(x+[2*delta,2*delta])
-					points.append(x+[10*DOLFIN_EPS,10*DOLFIN_EPS])
+				#On the contact line, rotate the stencil so that points remain in the convex hull.  The curvature and  dertivative products should be invariant.
+				theta=np.arctan2(x[0],x[1])-np.pi/4
+				rot=np.array([[np.cos(theta),np.sin(theta)],[-np.sin(theta),np.cos(theta)]])
+				points.append(x+np.dot(rot,[-delta,-delta]))
+				points.append(x+np.dot(rot,[0,-delta]))
+				points.append(x+np.dot(rot,[-2*delta,-delta]))
+				points.append(x+np.dot(rot,[-delta,0]))
+				points.append(x+np.dot(rot,[-delta,-2*delta]))
+				points.append(x)
+				points.append(x+np.dot(rot,[-2*delta,-2*delta]))
+			elif args.geometry == 'box':
+				#On the contact line, rotate the stencil so that points remain in the convex hull.  The curvature and  dertivative products should be invariant.
+				theta=0
+				if x[0]==0 and x[1]==0:
+					theta=np.pi
+				elif x[0]==tankLength and x[1]==0:
+					theta=np.pi/2
+				elif x[0]==tankLength and x[1]==tankWidth:
+					theta=0
+				elif x[0]==0 and x[1]==tankWidth:
+					theta=-np.pi/2
+				elif x[0]==0:
+					theta=-np.pi/2
+				elif x[0]==tankLength:
+					theta=np.pi/2
+				elif x[1]==0:
+					theta=np.pi
+				elif x[1]==tankWidth:
+					theta=0
+				rot=np.array([[np.cos(theta),np.sin(theta)],[-np.sin(theta),np.cos(theta)]])
+				points.append(x+np.dot(rot,[-delta,-delta]))
+				points.append(x+np.dot(rot,[0,-delta]))
+				points.append(x+np.dot(rot,[-2*delta,-delta]))
+				points.append(x+np.dot(rot,[-delta,0]))
+				points.append(x+np.dot(rot,[-delta,-2*delta]))
+				points.append(x)
+				points.append(x+np.dot(rot,[-2*delta,-2*delta]))
 	elif args.contact == 'periodic':
 		for k in range(len(idx_top2)):
 			x=mesh.coordinates()[idx_top2[k],:dim]
@@ -542,9 +536,12 @@ def curvature_top(y):
 	if(dim == 2):
 		if args.contact == 'slip':
 			vals=griddata(mesh.coordinates()[idx_top2,:dim], tankHeight+y[:nt], np.array(points), method='cubic')
-			nans=np.array(np.where(np.isnan(vals)))
-			print(np.array(points)[nans])
-			quit()
+			# nans=np.floor(np.array(np.where(np.isnan(vals))[0])/7)
+			# print()
+			# print(len(nans),len(contactpos))
+			# print(nans)
+			# print(contactpos)
+			# quit()
 			hx=(vals[1::7]-vals[2::7])/(2*delta)
 			hy=(vals[3::7]-vals[4::7])/(2*delta)
 			hxx=(vals[1::7]+vals[2::7]-2*vals[0::7])/(delta*delta)
@@ -554,7 +551,6 @@ def curvature_top(y):
 				curve2=(hxx+hyy+hxx*hy*hy+hyy*hx*hx-2*hx*hy*hxy)/(1+hx*hx+hy*hy)**(1.5)
 			else:
 				curve2=hxx+hyy
-			print(curve2[contactpos])
 			curve2[contactpos]/=2 #this is a numerical-empirical contact line slip force adjustment that is stable. Maybe it makes sense physically.
 			ret=[hx,hy,curve2]
 		elif args.contact == 'stick':
