@@ -8,13 +8,13 @@ import sys
 #Command line arguments
 parser = argparse.ArgumentParser(description='Moving mesh simulation for inviscid Faraday waves with inhomogeneous substrate.')
 parser.add_argument("--filebase", type=str, required=True, dest='output', help='Base string for file output')
-parser.add_argument("--frequency", type=float, default=23.0, dest='freq', help='Driving frequency in Hertz')
+parser.add_argument("--frequency", type=float, default=24.0, dest='freq', help='Driving frequency in Hertz')
 parser.add_argument("--gravity", type=float, default=980.0, dest='g', help='Gravitational acceleration in cm/s^2')
 parser.add_argument("--acceleration", type=float, default=1.0, dest='acceleration', help='Driving acceleration in terms of gravitational acceleration')
 parser.add_argument("--width", type=float, default=1.0, dest='width', help='Width in cm')
 parser.add_argument("--length", type=float, default=4.0, dest='length', help='Length in cm')
 parser.add_argument("--height", type=float, default=2.0, dest='height', help='Height in cm')
-parser.add_argument("--radius", type=float, default=4.0, dest='radius', help='Radius in cm')
+parser.add_argument("--radius", type=float, default=2.0, dest='radius', help='Radius in cm')
 parser.add_argument("--tension", type=float, default=72.0,dest='sigma', help='Surface tension in dyne/cm^2')
 parser.add_argument("--density", type=float, default=1.0,dest='rho', help='Fluid density in g/cm^3')
 parser.add_argument("--time", type=float, default=50, dest='simTime', help='Simulation time in driving cycles')
@@ -69,9 +69,9 @@ t_vec = np.arange((args.steps+1)*dt, tmax, dt)
 tankHeight = args.height
 if(args.geometry == 'rectangle'):
 	dim=1 #dimension of the surface
-	tankWidth = args.width
+	tankLength = args.length
 	meshHeight=tankHeight
-	mesh=RectangleMesh(Point(0.0,0.0), Point(tankWidth,tankHeight),args.xmesh, args.zmesh, 'right/left')
+	mesh=RectangleMesh(Point(0.0,0.0), Point(tankLength,tankHeight),args.xmesh, args.zmesh, 'right/left')
 elif (args.geometry == 'cylinder'):
 	dim=2 #dimension of the surface
 	tankRadius = args.radius
@@ -109,7 +109,7 @@ if(args.geometry=='rectangle'):
 meshlen=BoundaryMesh(mesh, "exterior", True).rmin()
 #indices of mesh top coordinates not on contact line
 if(args.geometry == 'rectangle'):
-	idx_top = np.array(np.where([np.abs(coord[1]-meshHeight) < 10*DOLFIN_EPS and np.abs((coord[0]**2)**(0.5)-tankWidth) > 0.1*meshlen and np.abs((coord[0]**2)**(0.5)) > 0.1*meshlen for coord in mesh.coordinates()])[0])
+	idx_top = np.array(np.where([np.abs(coord[1]-meshHeight) < 10*DOLFIN_EPS and np.abs((coord[0]**2)**(0.5)-tankLength) > 0.1*meshlen and np.abs((coord[0]**2)**(0.5)) > 0.1*meshlen for coord in mesh.coordinates()])[0])
 elif(args.geometry == 'cylinder'):
 	idx_top = np.array(np.where([np.abs(coord[2]-meshHeight) < 0.5*meshHeight/args.zmesh and np.abs((coord[0]**2+coord[1]**2)**(0.5)-tankRadius) > 0.5*meshlen for coord in mesh.coordinates()])[0])
 elif(args.geometry == 'box'):
@@ -167,10 +167,10 @@ else:
 			val=0.0
 			for n1 in range(1,args.imodes):
 				if not args.contact == 'slip':
-					val+=isin[n1]*np.sin(2*np.pi*n1*X/tankWidth)
+					val+=isin[n1]*np.sin(2*np.pi*n1*X/tankLength)
 			for n1 in range(1,args.imodes):
 				if not args.contact == 'stick':
-					val+=icos[n1]*np.cos(2*np.pi*n1*X/tankWidth)
+					val+=icos[n1]*np.cos(2*np.pi*n1*X/tankLength)
 			y0[k] = val
 	elif(args.geometry=='cylinder'):
 		isin=2*args.iamp*(np.random.random((args.imodes,args.imodes))-0.5)
@@ -247,9 +247,9 @@ if(args.geometry=='rectangle'):
 		X = mesh.coordinates()[idx_bottom[k],0]
 		val=0.0
 		for n1 in range(1,len(ssin)):
-			val+=ssin[n1]*np.sin(2*np.pi*n1*X/tankWidth)
+			val+=ssin[n1]*np.sin(2*np.pi*n1*X/tankLength)
 		for n1 in range(1,len(scos)):
-			val+=scos[n1]*np.cos(2*np.pi*n1*X/tankWidth)
+			val+=scos[n1]*np.cos(2*np.pi*n1*X/tankLength)
 		h0[k] = val
 elif(args.geometry=='cylinder'):
 	for k in range(nb):
@@ -339,7 +339,7 @@ class PeriodicBoundary(SubDomain):
 			return bool(x[0] == 0.0 or x[1] == 0.0)
 	def map(self, x, y):
 		if(args.geometry=='rectangle'):
-			y[0] = x[0] - tankWidth
+			y[0] = x[0] - tankLength
 			y[1] = x[1]
 		elif(args.geometry=='box'):
 			y[0] = x[0] - tankLength
@@ -353,7 +353,7 @@ if args.outLevel == 1:
 	paramOut.write("Steps\n%f\n" % args.steps)
 	paramOut.write("Height\n%f\n" % tankHeight)
 	if args.geometry=='rectangle':
-		paramOut.write("Width\n%f\n" % tankWidth)
+		paramOut.write("Length\n%f\n" % tankLength)
 	if args.geometry=='cylinder':
 		paramOut.write("Radius\n%f\n" % tankRadius)
 	if args.geometry=='box':
@@ -475,7 +475,7 @@ if(dim == 2):
 			points.append(np.array([x[0],np.mod(x[1]-delta, tankWidth)]))
 			points.append(np.array([np.mod(x[0]+delta, tankLength),np.mod(x[1]+delta, tankWidth)]))
 			points.append(np.array([np.mod(x[0]-delta, tankLength),np.mod(x[1]-delta, tankWidth)]))
-else:
+elif dim==1:
 	if args.contact == 'stick':
 		for k in range(len(idx_top)):
 			x=mesh.coordinates()[idx_top[k],:dim]
@@ -494,12 +494,12 @@ else:
 					points.append(x+delta)
 					points.append(x+2*delta)
 					points.append(x)
-				if x[0] == tankWidth:
+				if x[0] == tankLength:
 					points.append(x-delta)
 					points.append(x)
 					points.append(x-2*delta)
 	elif args.contact == 'periodic':
-		frequencies = np.concatenate((np.arange(0,int(nt/2),1),1+np.arange(int(nt/2),nt-1,1)-nt))*2*np.pi/tankWidth
+		frequencies = np.concatenate((np.arange(0,int(nt/2),1),1+np.arange(int(nt/2),nt-1,1)-nt))*2*np.pi/tankLength
 def curvature_top(y):
 	if(dim == 1):
 		if(args.contact == 'stick'):
@@ -531,17 +531,10 @@ def curvature_top(y):
 					curve2=hxx/(1+hx*hx)**(1.5)
 				else:
 					curve2=hxx
-				curve2[contactpos]/=2 #this is a numerical-empirical contact line slip force adjustment that is stable. Maybe it makes sense physically.
 				ret=[hx[:,0],curve2[:,0]]
 	if(dim == 2):
 		if args.contact == 'slip':
 			vals=griddata(mesh.coordinates()[idx_top2,:dim], tankHeight+y[:nt], np.array(points), method='cubic')
-			# nans=np.floor(np.array(np.where(np.isnan(vals))[0])/7)
-			# print()
-			# print(len(nans),len(contactpos))
-			# print(nans)
-			# print(contactpos)
-			# quit()
 			hx=(vals[1::7]-vals[2::7])/(2*delta)
 			hy=(vals[3::7]-vals[4::7])/(2*delta)
 			hxx=(vals[1::7]+vals[2::7]-2*vals[0::7])/(delta*delta)
@@ -551,7 +544,6 @@ def curvature_top(y):
 				curve2=(hxx+hyy+hxx*hy*hy+hyy*hx*hx-2*hx*hy*hxy)/(1+hx*hx+hy*hy)**(1.5)
 			else:
 				curve2=hxx+hyy
-			curve2[contactpos]/=2 #this is a numerical-empirical contact line slip force adjustment that is stable. Maybe it makes sense physically.
 			ret=[hx,hy,curve2]
 		elif args.contact == 'stick':
 			mvals=mesh.coordinates()[idx_top2,dim]
@@ -678,8 +670,8 @@ for it, t in enumerate(t_vec):
 			for k in range(nt):
 				x,h = mesh.coordinates()[idx_top2[k]]
 				# h = mesh.coordinates()[idx_top2[k],1]
-				projcc[n1] += (h-tankHeight)*np.cos(np.pi*n1*x/tankWidth)
-				projss[n1] += (h-tankHeight)*np.sin(np.pi*n1*x/tankWidth)
+				projcc[n1] += (h-tankHeight)*np.cos(np.pi*n1*x/tankLength)
+				projss[n1] += (h-tankHeight)*np.sin(np.pi*n1*x/tankLength)
 	elif(args.geometry == 'cylinder'):
 		projss=np.zeros((args.imodes,2*args.imodes))
 		projcc=np.zeros((args.imodes,2*args.imodes))
@@ -758,7 +750,7 @@ if(len(T1)>2):
 #Estimate the maximum mode projection. The wavenumber from this mode is outputed.
 proj=np.mean(projections[int(itlast/2):itlast+1],axis=0)
 if(args.geometry == 'rectangle'):
-	wave=np.pi*np.argmax(proj)/tankWidth
+	wave=np.pi*np.argmax(proj)/tankLength
 if(args.geometry == 'cylinder'):
 	[wavetheta,waver]=np.where(proj==np.max(proj))
 	if(waver < args.imodes):
@@ -767,7 +759,7 @@ if(args.geometry == 'cylinder'):
 			wave=jn_zeros(wavetheta[0],waver[0]-args.imodes+1)[-1]/tankRadius
 elif (args.geometry == 'box'):
 	[wavex,wavey]=np.array(np.where(proj==np.max(proj)))[:,0]
-	wave=np.pi*wavex/tankLength+np.pi*wavey/tankWidth
+	wave=np.sqrt((np.pi*wavex/tankLength)**2+(np.pi*wavey/tankWidth)**2)
 
 
 #Output results after integration
