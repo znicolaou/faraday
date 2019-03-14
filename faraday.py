@@ -412,8 +412,8 @@ points=[]
 thetas=np.zeros(nt) #TODO: store the theta that the stencil is rotated through for each k so we can rotate the gradient back
 if(dim == 2):
 	if args.contact == 'stick':
-		for k in range(len(idx_top2)):
-			x=mesh.coordinates()[idx_top2[k],:dim]
+		for k in range(len(idx_top)):
+			x=mesh.coordinates()[idx_top[k],:dim]
 			points.append(x)
 			points.append(x+[delta,0.0])
 			points.append(x-[delta,0.0])
