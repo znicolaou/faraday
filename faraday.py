@@ -122,6 +122,10 @@ else:
 top2pos=np.array([np.argwhere(idx_top2==it)[0,0] for it in idx_top])
 #indices of top coordinates that lie on the contact line
 contactpos=np.array(np.argwhere([not np.any(idx_top==it) for it in idx_top2])[:,0])
+#indices of corners for boxes
+cornerpos=[]
+if args.geometry=='box':
+	cornerpos=np.array(np.argwhere([(coord[0]==0.0 and coord[1]==0.0 or coord[0]==0.0 and coord[1]==tankWidth or coord[0]==tankLength and coord[1]==0.0 or coord[0]==tankLength and coord[1]==tankWidth) and coord[2]==tankHeight for coord in mesh.coordinates()[idx_top2]]))
 #indices of bottom coordinates
 idx_bottom = np.array(np.where(np.abs(mesh.coordinates()[:,dim]) < 10*DOLFIN_EPS)[0])
 nb=len(idx_bottom)
@@ -549,9 +553,11 @@ def curvature_top(y):
 			else:
 				curve=hxx+hyy
 			curve[contactpos]/=2 #numerical-empirical reduction of contact line curvature. This may make sense physically, since only half the point is "wet"
+			if args.geometry == 'box':
+				curve[cornerpos]/=2
 			#Rotate the gradient back to the original coordinates for the contact line
-			Hx=hx
-			Hy=hy
+			Hx=np.array(hx)
+			Hy=np.array(hy)
 			Hx[contactpos] = np.array([np.cos(thetas[k])*hx[k]-np.sin(thetas[k])*hy[k] for k in contactpos])
 			Hy[contactpos] = np.array([np.sin(thetas[k])*hx[k]+np.cos(thetas[k])*hy[k] for k in contactpos])
 			ret=[Hx,Hy,curve]
