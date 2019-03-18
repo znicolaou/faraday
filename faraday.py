@@ -641,11 +641,14 @@ else:
 norms1=np.zeros((len(t_vec)),float)
 norms2=np.zeros((len(t_vec)),float)
 if(args.geometry=='cylinder'):
+	pmodes=(args.imodes,2*args.imodes)
 	projections=np.zeros((len(t_vec),args.imodes,2*args.imodes))
 elif(args.geometry=='box'):
-	projections=np.zeros((len(t_vec),args.imodes,args.imodes))
+	pmodes=(np.min([args.imodes,args.xmesh]),np.min([args.imodes,args.ymesh]))
+	projections=np.zeros((len(t_vec),np.min([args.imodes,args.xmesh]), np.min([args.imodes,args.ymesh])))
 else:
-	projections=np.zeros((len(t_vec),args.imodes))
+	pmodes=np.min([args.imodes,args.xmesh])
+	projections=np.zeros((len(t_vec),np.min([args.imodes,args.xmesh])))
 
 #integrate one cycle before initializing the norm
 if(args.bmesh==0):
@@ -673,30 +676,22 @@ for it, t in enumerate(t_vec):
 	norms1[it] = np.linalg.norm(y[:nt])
 	norms2[it] = 2*np.linalg.norm(ode_deriv(t,y)[:nt])/omega
 	#Calculate the projections onto modes for wavenumber estimation
-	projss=None #array of sine-sine mode projections
-	projsc=None #array of sine-cosine mode projections
-	projcs=None #array of cosine-sine mode projections
-	projcc=None #array of cosine-cosine mode projections
+	projss=np.zeros(pmodes) #array of sine-sine mode projections
+	projsc=np.zeros(pmodes) #array of sine-cosine mode projections
+	projcs=np.zeros(pmodes) #array of cosine-sine mode projections
+	projcc=np.zeros(pmodes) #array of cosine-cosine mode projections
+
 	if args.geometry == 'rectangle':
-		projss=np.zeros(args.imodes)
-		projcc=np.zeros(args.imodes)
-		projsc=np.zeros(args.imodes) #not for rectangles
-		projcs=np.zeros(args.imodes) #not for rectangles
-		for n1 in range(args.imodes):
+		for n1 in range(pmodes):
 			for k in range(nt):
 				x,h = mesh.coordinates()[idx_top2[k]]
-				# h = mesh.coordinates()[idx_top2[k],1]
 				projcc[n1] += (h-tankHeight)*np.cos(np.pi*n1*x/tankLength)
 				projss[n1] += (h-tankHeight)*np.sin(np.pi*n1*x/tankLength)
 	elif(args.geometry == 'cylinder'):
-		projss=np.zeros((args.imodes,2*args.imodes))
-		projcc=np.zeros((args.imodes,2*args.imodes))
-		projsc=np.zeros((args.imodes,2*args.imodes)) #not for cylinders
-		projcs=np.zeros((args.imodes,2*args.imodes)) #not for cylinders
-		for n1 in range(args.imodes):
+		for n1 in range(pmodes[0]):
 			#modes with extrema at contact line
-			zeros=jnp_zeros(n1,args.imodes)
-			for n2 in range(args.imodes):
+			zeros=jnp_zeros(n1,int(pmodes[1]/2))
+			for n2 in range(int(pmodes[1]/2)):
 				for k in range(nt):
 					X,Y,h = mesh.coordinates()[idx_top2[k]]
 					r=(X*X+Y*Y)**(0.5)
@@ -704,27 +699,26 @@ for it, t in enumerate(t_vec):
 					projss[n1,n2] += r*(h-tankHeight)*jn(n1,zeros[n2]*r/tankRadius)*np.sin(n1*theta)
 					projcc[n1,n2] += r*(h-tankHeight)*jn(n1,zeros[n2]*r/tankRadius)*np.cos(n1*theta)
 			#modes with zeros at contact line
-			zeros2=jn_zeros(n1,args.imodes)
-			for n2 in range(args.imodes):
+			zeros2=jn_zeros(n1,int(pmodes[1]/2))
+			for n2 in range(int(pmodes[1]/2)):
 				for k in range(nt):
 					X,Y,h = mesh.coordinates()[idx_top2[k]]
 					r=(X*X+Y*Y)**(0.5)
 					theta=np.arctan2(Y,X)
-					projss[n1,args.imodes+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.sin(n1*theta)
-					projcc[n1,args.imodes+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.cos(n1*theta)
+					projss[n1,int(pmodes[1]/2)+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.sin(n1*theta)
+					projcc[n1,int(pmodes[1]/2)+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.cos(n1*theta)
 	elif args.geometry == 'box':
-		projss=np.zeros((args.imodes,args.imodes))
-		projsc=np.zeros((args.imodes,args.imodes))
-		projcs=np.zeros((args.imodes,args.imodes))
-		projcc=np.zeros((args.imodes,args.imodes))
-		for n1 in range(args.imodes):
-			for n2 in range(args.imodes):
+		for n1 in range(pmodes[0]):
+			for n2 in range(pmodes[1]):
 				for k in range(nt):
 					X,Y,h = mesh.coordinates()[idx_top2[k]]
-					projcc[n1,n2] += (h-tankHeight)*np.cos(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
-					projss[n1,n2] += (h-tankHeight)*np.sin(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
-					projsc[n1,n2] += (h-tankHeight)*np.sin(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
-					projcs[n1,n2] += (h-tankHeight)*np.cos(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
+					if(args.contact == 'stick'):
+						projss[n1,n2] += (h-tankHeight)*np.sin(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
+					else:
+						projcc[n1,n2] += (h-tankHeight)*np.cos(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
+						projss[n1,n2] += (h-tankHeight)*np.sin(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
+						projsc[n1,n2] += (h-tankHeight)*np.sin(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
+						projcs[n1,n2] += (h-tankHeight)*np.cos(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
 	projections[it]=projss*projss+projsc*projsc+projcs*projcs+projcc*projcc #array of mode projections.
 
 	#Output while integrating
