@@ -251,9 +251,9 @@ if(args.geometry=='rectangle'):
 		X = mesh.coordinates()[idx_bottom[k],0]
 		val=0.0
 		for n1 in range(args.smodes):
-			val+=ssin[n1]*np.sin(2*np.pi*n1*X/tankLength)
+			val+=ssin[n1]*np.sin(np.pi*n1*X/tankLength)
 		for n1 in range(args.smodes):
-			val+=scos[n1]*np.cos(2*np.pi*n1*X/tankLength)
+			val+=scos[n1]*np.cos(np.pi*n1*X/tankLength)
 		h0[k] = val
 elif(args.geometry=='cylinder'):
 	for k in range(nb):
@@ -278,10 +278,10 @@ elif(args.geometry=='box'):
 		val=0.0
 		for n1 in range(args.smodes):
 			for n2 in range(args.smodes):
-				val+=subss[n1,n2]*np.sin(2*np.pi*n1*X/tankLength)*np.sin(2*np.pi*n2*Y/tankWidth)
-				val+=subsc[n1,n2]*np.sin(2*np.pi*n1*X/tankLength)*np.cos(2*np.pi*n2*Y/tankWidth)
-				val+=subcs[n1,n2]*np.cos(2*np.pi*n1*X/tankLength)*np.sin(2*np.pi*n2*Y/tankWidth)
-				val+=subcc[n1,n2]*np.cos(2*np.pi*n1*X/tankLength)*np.cos(2*np.pi*n2*Y/tankWidth)
+				val+=subss[n1,n2]*np.sin(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
+				val+=subsc[n1,n2]*np.sin(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
+				val+=subcs[n1,n2]*np.cos(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
+				val+=subcc[n1,n2]*np.cos(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
 		h0[k] = val
 
 #Move mesh functions
