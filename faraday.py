@@ -26,6 +26,7 @@ parser.add_argument("--imodes", type=int, default=10, dest='imodes', help='Numbe
 parser.add_argument("--sseed", type=int, default=0, dest='sseed', help='Seed for random substrate shape')
 parser.add_argument("--samp", type=float, default=0.0, dest='samp', help='Amplitude for modes in random substrate shape')
 parser.add_argument("--smodes", type=int, default=3, dest='smodes', help='Number of modes to include in random substrate shape')
+parser.add_argument("--pmodes", type=int, default=5, dest='pmodes', help='Number of modes to include in wavenumber estimation')
 parser.add_argument("--rtol", type=float, default=1e-4, dest='rtol', help='Integration relative tolerance')
 parser.add_argument("--atol", type=float, default=1e-8, dest='atol', help='Integration absolute tolerance')
 parser.add_argument("--damp1", type=float, default=2.0, dest='damp1', help='Constant damping coefficient')
@@ -641,14 +642,14 @@ else:
 norms1=np.zeros((len(t_vec)),float)
 norms2=np.zeros((len(t_vec)),float)
 if(args.geometry=='cylinder'):
-	pmodes=(args.imodes,2*args.imodes)
-	projections=np.zeros((len(t_vec),args.imodes,2*args.imodes))
+	pmodes=(args.pmodes,2*args.pmodes)
+	projections=np.zeros((len(t_vec),args.pmodes,2*args.pmodes))
 elif(args.geometry=='box'):
-	pmodes=(np.min([args.imodes,args.xmesh]),np.min([args.imodes,args.ymesh]))
-	projections=np.zeros((len(t_vec),np.min([args.imodes,args.xmesh]), np.min([args.imodes,args.ymesh])))
+	pmodes=(np.min([args.pmodes,args.xmesh]),np.min([args.pmodes,args.ymesh]))
+	projections=np.zeros((len(t_vec),np.min([args.pmodes,args.xmesh]), np.min([args.pmodes,args.ymesh])))
 else:
-	pmodes=np.min([args.imodes,args.xmesh])
-	projections=np.zeros((len(t_vec),np.min([args.imodes,args.xmesh])))
+	pmodes=np.min([args.pmodes,args.xmesh])
+	projections=np.zeros((len(t_vec),np.min([args.pmodes,args.xmesh])))
 
 #integrate one cycle before initializing the norm
 if(args.bmesh==0):
@@ -685,8 +686,11 @@ for it, t in enumerate(t_vec):
 		for n1 in range(pmodes):
 			for k in range(nt):
 				x,h = mesh.coordinates()[idx_top2[k]]
-				projcc[n1] += (h-tankHeight)*np.cos(np.pi*n1*x/tankLength)
-				projss[n1] += (h-tankHeight)*np.sin(np.pi*n1*x/tankLength)
+				if(args.contact == 'stick'):
+					projss[n1] += (h-tankHeight)*np.sin(np.pi*n1*x/tankLength)
+				else:
+					projcc[n1] += (h-tankHeight)*np.cos(np.pi*n1*x/tankLength)
+					projss[n1] += (h-tankHeight)*np.sin(np.pi*n1*x/tankLength)
 	elif(args.geometry == 'cylinder'):
 		for n1 in range(pmodes[0]):
 			#modes with extrema at contact line
