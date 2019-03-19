@@ -26,7 +26,7 @@ parser.add_argument("--imodes", type=int, default=10, dest='imodes', help='Numbe
 parser.add_argument("--sseed", type=int, default=0, dest='sseed', help='Seed for random substrate shape')
 parser.add_argument("--samp", type=float, default=0.0, dest='samp', help='Amplitude for modes in random substrate shape')
 parser.add_argument("--smodes", type=int, default=3, dest='smodes', help='Number of modes to include in random substrate shape')
-parser.add_argument("--pmodes", type=int, default=5, dest='pmodes', help='Number of modes to include in wavenumber estimation')
+parser.add_argument("--pmodes", type=int, default=10, dest='pmodes', help='Number of modes to include in wavenumber estimation')
 parser.add_argument("--rtol", type=float, default=1e-4, dest='rtol', help='Integration relative tolerance')
 parser.add_argument("--atol", type=float, default=1e-8, dest='atol', help='Integration absolute tolerance')
 parser.add_argument("--damp1", type=float, default=2.0, dest='damp1', help='Constant damping coefficient')
