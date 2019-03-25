@@ -18,7 +18,7 @@ ZGN_N=50
 ZGN_xmesh=34
 ZGN_ymesh=5
 ZGN_zmesh=10
-ZGN_samp=1.9
+ZGN_samp=1.75
 ZGN_iamp=1e-4
 ZGN_contact="stick"
 ZGN_geometry="box"
@@ -42,7 +42,7 @@ js=`jobs | wc -l`
 done
 
 ZGN_freq=`bc -l <<<"${ZGN_freq0}+(${ZGN_freq1}-${ZGN_freq0})*${ZGN_temp1}*1.0/${ZGN_N}"`
-ZGN_A=`bc -l <<<"${ZGN_A0}+(${ZGN_A1}-${ZGN_A0})*${ZGN_temp2}*0.02"`
+ZGN_A=`bc -l <<<"${ZGN_A0}+(${ZGN_A1}-${ZGN_A0})*${ZGN_temp2}*1.0/${ZGN_N}"`
 
 /home/zgn667/anaconda3/envs/fenics_env/bin/python faraday.py --frequency $ZGN_freq --acceleration $ZGN_A --filebase ${ZGN_filebase}/${ZGN_temp2}/params_${ZGN_temp1} --output 0 --iamp $ZGN_iamp --xmesh $ZGN_xmesh --ymesh $ZGN_ymesh --zmesh $ZGN_zmesh --samp $ZGN_samp --threshold $ZGN_threshold --contact $ZGN_contact --height $ZGN_height --width $ZGN_width --length $ZGN_length --geometry $ZGN_geometry --time $ZGN_time &
 done

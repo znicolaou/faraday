@@ -1,6 +1,6 @@
 #!/bin/bash
 #MSUB -A p30471
-#MSUB -q short
+#MSUB -q normal
 #MSUB -l procs=25
 #MSUB -j oe
 #MSUB -V
@@ -15,9 +15,9 @@ ZGN_freq1=30.0
 ZGN_A0=0.0
 ZGN_A1=2.0
 ZGN_N=50
-ZGN_xmesh=10
+ZGN_xmesh=20
 ZGN_ymesh=5
-ZGN_zmesh=10
+ZGN_zmesh=15
 ZGN_samp=0
 ZGN_iamp=1e-4
 ZGN_contact="stick"
