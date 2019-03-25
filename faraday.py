@@ -257,8 +257,6 @@ else:
 		subcc=0 #Volume conservation
 
 if(args.geometry=='rectangle'):
-	print(ssin)
-	print(scos)
 	for k in range(nb):
 		X = mesh.coordinates()[idx_bottom[k],0]
 		val=0.0
@@ -295,6 +293,10 @@ elif(args.geometry=='box'):
 				val+=subcs[n1,n2]*np.cos(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
 				val+=subcc[n1,n2]*np.cos(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
 		h0[k] = val
+
+if np.any(h0 > tankHeight):
+	print("Bad substrate")
+	quit()
 
 #Move mesh functions
 #Define displacement for every mesh point based on the top and bottom shapes
@@ -789,7 +791,7 @@ elif (args.geometry == 'box'):
 
 #Output results after integration
 paramOut = open(args.output+".txt",'a+')
-paramOut.write("%f %f %f %f\n" % (frequency, rate, wave, args.samp))
+paramOut.write("%f %f %f %f %f\n" % (frequency, rate, wave, args.samp, args.sseed))
 paramOut.close()
 if(args.outLevel == 1):
 	if(args.contact == 'stick'):
@@ -810,7 +812,7 @@ if(args.outLevel == 1):
 		fs[1,nt+1:]=mesh.coordinates()[idx_top2,1]
 		np.savetxt(args.output+"fs.dat",fs)
 
-print("%f %f %f %f %f %f" % (args.freq, args.acceleration, frequency, rate, wave, args.samp))
+print("%f %f %f %f %f %f %f" % (args.freq, args.acceleration, frequency, rate, wave, args.samp, args.sseed))
 print("runtime %.2f seconds" % (time.time() - t1))
 
 sys.stdout.flush()
