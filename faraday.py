@@ -778,7 +778,7 @@ elif (args.geometry == 'box'):
 
 #Output results after integration
 paramOut = open(args.output+".txt",'a+')
-paramOut.write("%f %f %f\n" % (frequency, rate, wave))
+paramOut.write("%f %f %f %f\n" % (frequency, rate, wave, args.samp))
 paramOut.close()
 if(args.outLevel == 1):
 	if(args.contact == 'stick'):
@@ -799,7 +799,7 @@ if(args.outLevel == 1):
 		fs[1,nt+1:]=mesh.coordinates()[idx_top2,1]
 		np.savetxt(args.output+"fs.dat",fs)
 
-print("%f %f %f %f %f" % (args.freq, args.acceleration, frequency, rate, wave))
+print("%f %f %f %f %f %f" % (args.freq, args.acceleration, frequency, rate, wave, args.samp))
 print("runtime %.2f seconds" % (time.time() - t1))
 
 sys.stdout.flush()
