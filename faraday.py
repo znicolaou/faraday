@@ -8,13 +8,13 @@ import sys
 #Command line arguments
 parser = argparse.ArgumentParser(description='Moving mesh simulation for inviscid Faraday waves with inhomogeneous substrate.')
 parser.add_argument("--filebase", type=str, required=True, dest='output', help='Base string for file output')
-parser.add_argument("--frequency", type=float, default=23.0, dest='freq', help='Driving frequency in Hertz')
+parser.add_argument("--frequency", type=float, default=24.0, dest='freq', help='Driving frequency in Hertz')
 parser.add_argument("--gravity", type=float, default=980.0, dest='g', help='Gravitational acceleration in cm/s^2')
 parser.add_argument("--acceleration", type=float, default=1.0, dest='acceleration', help='Driving acceleration in terms of gravitational acceleration')
 parser.add_argument("--width", type=float, default=1.0, dest='width', help='Width in cm')
 parser.add_argument("--length", type=float, default=4.0, dest='length', help='Length in cm')
 parser.add_argument("--height", type=float, default=2.0, dest='height', help='Height in cm')
-parser.add_argument("--radius", type=float, default=4.0, dest='radius', help='Radius in cm')
+parser.add_argument("--radius", type=float, default=2.0, dest='radius', help='Radius in cm')
 parser.add_argument("--tension", type=float, default=72.0,dest='sigma', help='Surface tension in dyne/cm^2')
 parser.add_argument("--density", type=float, default=1.0,dest='rho', help='Fluid density in g/cm^3')
 parser.add_argument("--time", type=float, default=50, dest='simTime', help='Simulation time in driving cycles')
@@ -26,6 +26,7 @@ parser.add_argument("--imodes", type=int, default=10, dest='imodes', help='Numbe
 parser.add_argument("--sseed", type=int, default=0, dest='sseed', help='Seed for random substrate shape')
 parser.add_argument("--samp", type=float, default=0.0, dest='samp', help='Amplitude for modes in random substrate shape')
 parser.add_argument("--smodes", type=int, default=3, dest='smodes', help='Number of modes to include in random substrate shape')
+parser.add_argument("--pmodes", type=int, default=10, dest='pmodes', help='Number of modes to include in wavenumber estimation')
 parser.add_argument("--rtol", type=float, default=1e-4, dest='rtol', help='Integration relative tolerance')
 parser.add_argument("--atol", type=float, default=1e-8, dest='atol', help='Integration absolute tolerance')
 parser.add_argument("--damp1", type=float, default=2.0, dest='damp1', help='Constant damping coefficient')
@@ -69,9 +70,9 @@ t_vec = np.arange((args.steps+1)*dt, tmax, dt)
 tankHeight = args.height
 if(args.geometry == 'rectangle'):
 	dim=1 #dimension of the surface
-	tankWidth = args.width
+	tankLength = args.length
 	meshHeight=tankHeight
-	mesh=RectangleMesh(Point(0.0,0.0), Point(tankWidth,tankHeight),args.xmesh, args.zmesh, 'right/left')
+	mesh=RectangleMesh(Point(0.0,0.0), Point(tankLength,tankHeight),args.xmesh, args.zmesh, 'right/left')
 elif (args.geometry == 'cylinder'):
 	dim=2 #dimension of the surface
 	tankRadius = args.radius
@@ -109,7 +110,7 @@ if(args.geometry=='rectangle'):
 meshlen=BoundaryMesh(mesh, "exterior", True).rmin()
 #indices of mesh top coordinates not on contact line
 if(args.geometry == 'rectangle'):
-	idx_top = np.array(np.where([np.abs(coord[1]-meshHeight) < 10*DOLFIN_EPS and np.abs((coord[0]**2)**(0.5)-tankWidth) > 0.1*meshlen and np.abs((coord[0]**2)**(0.5)) > 0.1*meshlen for coord in mesh.coordinates()])[0])
+	idx_top = np.array(np.where([np.abs(coord[1]-meshHeight) < 10*DOLFIN_EPS and np.abs((coord[0]**2)**(0.5)-tankLength) > 0.1*meshlen and np.abs((coord[0]**2)**(0.5)) > 0.1*meshlen for coord in mesh.coordinates()])[0])
 elif(args.geometry == 'cylinder'):
 	idx_top = np.array(np.where([np.abs(coord[2]-meshHeight) < 0.5*meshHeight/args.zmesh and np.abs((coord[0]**2+coord[1]**2)**(0.5)-tankRadius) > 0.5*meshlen for coord in mesh.coordinates()])[0])
 elif(args.geometry == 'box'):
@@ -120,6 +121,12 @@ else:
 	nt=len(idx_top2)
 #indices of top coordinates list that don't lie on the contact line
 top2pos=np.array([np.argwhere(idx_top2==it)[0,0] for it in idx_top])
+#indices of top coordinates that lie on the contact line
+contactpos=np.array(np.argwhere([not np.any(idx_top==it) for it in idx_top2])[:,0])
+#indices of corners for boxes
+cornerpos=[]
+if args.geometry=='box':
+	cornerpos=np.array(np.argwhere([(coord[0]==0.0 and coord[1]==0.0 or coord[0]==0.0 and coord[1]==tankWidth or coord[0]==tankLength and coord[1]==0.0 or coord[0]==tankLength and coord[1]==tankWidth) and coord[2]==tankHeight for coord in mesh.coordinates()[idx_top2]]))
 #indices of bottom coordinates
 idx_bottom = np.array(np.where(np.abs(mesh.coordinates()[:,dim]) < 10*DOLFIN_EPS)[0])
 nb=len(idx_bottom)
@@ -164,9 +171,11 @@ else:
 			X = mesh.coordinates()[idx_top2[k],0]
 			val=0.0
 			for n1 in range(1,args.imodes):
-				val+=isin[n1]*np.sin(2*np.pi*n1*X/tankWidth)
+				if not args.contact == 'slip':
+					val+=isin[n1]*np.sin(2*np.pi*n1*X/tankLength)
 			for n1 in range(1,args.imodes):
-				val+=icos[n1]*np.cos(2*np.pi*n1*X/tankWidth)
+				if not args.contact == 'stick':
+					val+=icos[n1]*np.cos(2*np.pi*n1*X/tankLength)
 			y0[k] = val
 	elif(args.geometry=='cylinder'):
 		isin=2*args.iamp*(np.random.random((args.imodes,args.imodes))-0.5)
@@ -203,7 +212,6 @@ else:
 			y0[k] = val
 #Substrate shape
 h0 = np.zeros(nb, float)
-np.random.seed(args.sseed)
 if (os.path.exists(args.output+"substrate.dat")):
 	print("Using substrate from files")
 	substrateFile=open(args.output+"substrate.dat", 'r')
@@ -227,9 +235,13 @@ if (os.path.exists(args.output+"substrate.dat")):
 		subcc=args.samp*np.array([[float(i) for i in substrateFile.readline().split()] for j in range(args.smodes)])
 	substrateFile.close()
 else:
+	np.random.seed(args.sseed)
 	if(args.geometry=='rectangle'):
 		ssin=2*args.samp*(np.random.random(args.smodes)-0.5)
 		scos=2*args.samp*(np.random.random(args.smodes)-0.5)
+		ssin[1::2]=0 #Don't use half-integer modes for random substrates
+		scos[1::2]=0 #Don't use half-integer modes for random substrates
+		scos[0]=0 #Volume conservation
 	elif(args.geometry=='cylinder'):
 		ssin=2*args.samp*(np.random.random((args.smodes,args.smodes))-0.5)
 		scos=2*args.samp*(np.random.random((args.smodes,args.smodes))-0.5)
@@ -238,14 +250,20 @@ else:
 		subsc=2*args.samp*(np.random.random((args.smodes,args.smodes))-0.5)
 		subcs=2*args.samp*(np.random.random((args.smodes,args.smodes))-0.5)
 		subcc=2*args.samp*(np.random.random((args.smodes,args.smodes))-0.5)
+		subss[1::2]=0 #Don't use half-integer modes for random substrates
+		subsc[1::2]=0 #Don't use half-integer modes for random substrates
+		subcs[1::2]=0 #Don't use half-integer modes for random substrates
+		subcc[1::2]=0 #Don't use half-integer modes for random substrates
+		subcc=0 #Volume conservation
+
 if(args.geometry=='rectangle'):
 	for k in range(nb):
 		X = mesh.coordinates()[idx_bottom[k],0]
 		val=0.0
-		for n1 in range(1,len(ssin)):
-			val+=ssin[n1]*np.sin(2*np.pi*n1*X/tankWidth)
-		for n1 in range(1,len(scos)):
-			val+=scos[n1]*np.cos(2*np.pi*n1*X/tankWidth)
+		for n1 in range(args.smodes):
+			val+=ssin[n1]*np.sin(np.pi*n1*X/tankLength)
+		for n1 in range(args.smodes):
+			val+=scos[n1]*np.cos(np.pi*n1*X/tankLength)
 		h0[k] = val
 elif(args.geometry=='cylinder'):
 	for k in range(nb):
@@ -253,14 +271,14 @@ elif(args.geometry=='cylinder'):
 		r=(X*X+Y*Y)**(0.5)
 		theta=np.arctan2(Y,X)
 		val=0.0
-		for n1 in range(len(ssin)):
+		for n1 in range(args.smodes):
 			zeros=jn_zeros(n1,len(ssin)+1)
-			for n2 in range(len(ssin[n1])):
+			for n2 in range(args.smodes):
 				max=np.max([jn(n1,zeros[n2]*i/100) for i in range(101)])
 				val+=ssin[n1,n2]*jn(n1,zeros[n2]*r/tankRadius)/max*np.sin(n1*theta)
-		for n1 in range(len(scos)):
+		for n1 in range(args.smodes):
 			zeros=jn_zeros(n1,len(scos)+1)
-			for n2 in range(len(scos[n1])):
+			for n2 in range(args.smodes):
 				max=np.max([jn(n1,zeros[n2]*i/100) for i in range(101)])
 				val+=scos[n1,n2]*jn(n1,zeros[n2]*r/tankRadius)/max*np.cos(n1*theta)
 		h0[k] = val
@@ -270,11 +288,15 @@ elif(args.geometry=='box'):
 		val=0.0
 		for n1 in range(args.smodes):
 			for n2 in range(args.smodes):
-				val+=subss[n1,n2]*np.sin(2*np.pi*(n1+1)*X/tankLength)*np.sin(2*np.pi*n2*Y/tankWidth)
-				val+=subsc[n1,n2]*np.sin(2*np.pi*(n1+1)*X/tankLength)*np.cos(2*np.pi*n2*Y/tankWidth)
-				val+=subcs[n1,n2]*np.cos(2*np.pi*(n1+1)*X/tankLength)*np.sin(2*np.pi*n2*Y/tankWidth)
-				val+=subcc[n1,n2]*np.cos(2*np.pi*(n1+1)*X/tankLength)*np.cos(2*np.pi*n2*Y/tankWidth)
+				val+=subss[n1,n2]*np.sin(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
+				val+=subsc[n1,n2]*np.sin(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
+				val+=subcs[n1,n2]*np.cos(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
+				val+=subcc[n1,n2]*np.cos(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
 		h0[k] = val
+
+if np.any(h0 > tankHeight):
+	print("Bad substrate")
+	quit()
 
 #Move mesh functions
 #Define displacement for every mesh point based on the top and bottom shapes
@@ -335,7 +357,7 @@ class PeriodicBoundary(SubDomain):
 			return bool(x[0] == 0.0 or x[1] == 0.0)
 	def map(self, x, y):
 		if(args.geometry=='rectangle'):
-			y[0] = x[0] - tankWidth
+			y[0] = x[0] - tankLength
 			y[1] = x[1]
 		elif(args.geometry=='box'):
 			y[0] = x[0] - tankLength
@@ -349,7 +371,7 @@ if args.outLevel == 1:
 	paramOut.write("Steps\n%f\n" % args.steps)
 	paramOut.write("Height\n%f\n" % tankHeight)
 	if args.geometry=='rectangle':
-		paramOut.write("Width\n%f\n" % tankWidth)
+		paramOut.write("Length\n%f\n" % tankLength)
 	if args.geometry=='cylinder':
 		paramOut.write("Radius\n%f\n" % tankRadius)
 	if args.geometry=='box':
@@ -397,12 +419,13 @@ bc_exp_top = DynamicFreeSurfaceCondition(element=V.ufl_element())
 bc_top = DirichletBC(V, bc_exp_top, boundary_T, method="pointwise", check_midpoint=False)
 dydt = np.zeros(nt*2, float)
 
-#Function for finding curvature away from the contact line
-#Interpolate the mesh to find finite differences, using spacing one quarter the mesh lengh scale
-delta=0.25*meshlen
+#Function for finding curvature
+#Interpolate the mesh to find finite differences, using spacing one tenth the mesh lengh scale
+delta=0.1*meshlen
 points=[]
+thetas=np.zeros(nt) #TODO: store the theta that the stencil is rotated through for each k so we can rotate the gradient back
 if(dim == 2):
-	if args.contact == 'stick' or args.contact == 'slip':
+	if args.contact == 'stick':
 		for k in range(len(idx_top)):
 			x=mesh.coordinates()[idx_top[k],:dim]
 			points.append(x)
@@ -412,6 +435,57 @@ if(dim == 2):
 			points.append(x-[0.0,delta])
 			points.append(x+[delta,delta])
 			points.append(x-[delta,delta])
+	elif args.contact == 'slip':
+		for k in range(len(idx_top2)):
+			x=mesh.coordinates()[idx_top2[k],:dim]
+			if not k in contactpos:
+				points.append(x)
+				points.append(x+[delta,0.0])
+				points.append(x-[delta,0.0])
+				points.append(x+[0.0,delta])
+				points.append(x-[0.0,delta])
+				points.append(x+[delta,delta])
+				points.append(x-[delta,delta])
+			elif args.geometry == 'cylinder':
+				#On the contact line, rotate the stencil so that points remain in the convex hull.  The curvature and  dertivative products should be invariant.
+				theta=np.arctan2(x[0],x[1])-np.pi/4
+				thetas[k]=theta
+				rot=np.array([[np.cos(theta),np.sin(theta)],[-np.sin(theta),np.cos(theta)]])
+				points.append(x+np.dot(rot,[-delta,-delta]))
+				points.append(x+np.dot(rot,[0,-delta]))
+				points.append(x+np.dot(rot,[-2*delta,-delta]))
+				points.append(x+np.dot(rot,[-delta,0]))
+				points.append(x+np.dot(rot,[-delta,-2*delta]))
+				points.append(x)
+				points.append(x+np.dot(rot,[-2*delta,-2*delta]))
+			elif args.geometry == 'box':
+				#On the contact line, rotate the stencil so that points remain in the convex hull.  The curvature and  dertivative products should be invariant.
+				theta=0
+				if x[0]==0 and x[1]==0:
+					theta=np.pi
+				elif x[0]==tankLength and x[1]==0:
+					theta=np.pi/2
+				elif x[0]==tankLength and x[1]==tankWidth:
+					theta=0
+				elif x[0]==0 and x[1]==tankWidth:
+					theta=-np.pi/2
+				elif x[0]==0:
+					theta=-np.pi/2
+				elif x[0]==tankLength:
+					theta=np.pi/2
+				elif x[1]==0:
+					theta=np.pi
+				elif x[1]==tankWidth:
+					theta=0
+				thetas[k]=theta
+				rot=np.array([[np.cos(theta),np.sin(theta)],[-np.sin(theta),np.cos(theta)]])
+				points.append(x+np.dot(rot,[-delta,-delta]))
+				points.append(x+np.dot(rot,[0,-delta]))
+				points.append(x+np.dot(rot,[-2*delta,-delta]))
+				points.append(x+np.dot(rot,[-delta,0]))
+				points.append(x+np.dot(rot,[-delta,-2*delta]))
+				points.append(x)
+				points.append(x+np.dot(rot,[-2*delta,-2*delta]))
 	elif args.contact == 'periodic':
 		for k in range(len(idx_top2)):
 			x=mesh.coordinates()[idx_top2[k],:dim]
@@ -422,13 +496,31 @@ if(dim == 2):
 			points.append(np.array([x[0],np.mod(x[1]-delta, tankWidth)]))
 			points.append(np.array([np.mod(x[0]+delta, tankLength),np.mod(x[1]+delta, tankWidth)]))
 			points.append(np.array([np.mod(x[0]-delta, tankLength),np.mod(x[1]-delta, tankWidth)]))
-else:
-	for k in range(len(idx_top)):
-		x=mesh.coordinates()[idx_top[k],:dim]
-		points.append(x)
-		points.append(x+delta)
-		points.append(x-delta)
-	frequencies = np.concatenate((np.arange(0,int(nt/2),1),1+np.arange(int(nt/2),nt-1,1)-nt))*2*np.pi/tankWidth
+elif dim==1:
+	if args.contact == 'stick':
+		for k in range(len(idx_top)):
+			x=mesh.coordinates()[idx_top[k],:dim]
+			points.append(x)
+			points.append(x+delta)
+			points.append(x-delta)
+	elif args.contact == 'slip':
+		for k in range(len(idx_top2)):
+			x=mesh.coordinates()[idx_top2[k],:dim]
+			if not k in contactpos:
+				points.append(x)
+				points.append(x+delta)
+				points.append(x-delta)
+			else:
+				if x[0] == 0:
+					points.append(x+delta)
+					points.append(x+2*delta)
+					points.append(x)
+				if x[0] == tankLength:
+					points.append(x-delta)
+					points.append(x)
+					points.append(x-2*delta)
+	elif args.contact == 'periodic':
+		frequencies = np.concatenate((np.arange(0,int(nt/2),1),1+np.arange(int(nt/2),nt-1,1)-nt))*2*np.pi/tankLength
 def curvature_top(y):
 	if(dim == 1):
 		if(args.contact == 'stick'):
@@ -453,22 +545,17 @@ def curvature_top(y):
 				curve0=hxx
 			ret=[np.append(hx,hx[0]),np.append(curve0,curve0[0])]
 		elif args.contact == 'slip':
-				#for simplicity, the curvature on the contact line is neglected in the slip case
 				vals=griddata(mesh.coordinates()[idx_top2,:dim], tankHeight+y[:nt], np.array(points), method='cubic')
 				hx=(vals[1::3]-vals[2::3])/(2*delta)
 				hxx=(vals[1::3]+vals[2::3]-2*vals[0::3])/(delta*delta)
 				if(args.nonlinear == 1):
-					curve2=hxx/(1+hx*hx)**(1.5)
+					curve=hxx/(1+hx*hx)**(1.5)
 				else:
-					curve2=hxx
-				curve=np.zeros(nt)
-				Hx=np.zeros(nt)
-				curve[top2pos]=curve2[:,0]
-				Hx[top2pos]=hx[:,0]
-				ret=[Hx,curve]
+					curve=hxx
+				curve[contactpos]/=2 #numerical-empirical reduction of contact line curvature. This may make sense physically, since half the point is "wet"
+				ret=[hx[:,0],curve[:,0]]
 	if(dim == 2):
 		if args.contact == 'slip':
-			#for simplicity, the curvature on the contact line is neglected in the slip case
 			vals=griddata(mesh.coordinates()[idx_top2,:dim], tankHeight+y[:nt], np.array(points), method='cubic')
 			hx=(vals[1::7]-vals[2::7])/(2*delta)
 			hy=(vals[3::7]-vals[4::7])/(2*delta)
@@ -476,15 +563,17 @@ def curvature_top(y):
 			hyy=(vals[3::7]+vals[4::7]-2*vals[0::7])/(delta*delta)
 			hxy=(vals[5::7]+vals[6::7]-vals[1::7]-vals[2::7]-vals[3::7]-vals[4::7]+2*vals[0::7])/(2*delta*delta)
 			if(args.nonlinear == 1):
-				curve2=(hxx+hyy+hxx*hy*hy+hyy*hx*hx-2*hx*hy*hxy)/(1+hx*hx+hy*hy)**(1.5)
+				curve=(hxx+hyy+hxx*hy*hy+hyy*hx*hx-2*hx*hy*hxy)/(1+hx*hx+hy*hy)**(1.5)
 			else:
-				curve2=hxx+hyy
-			curve=np.zeros(nt)
-			Hx=np.zeros(nt)
-			Hy=np.zeros(nt)
-			curve[top2pos]=curve2
-			Hx[top2pos]=hx
-			Hy[top2pos]=hy
+				curve=hxx+hyy
+			curve[contactpos]/=2 #numerical-empirical reduction of contact line curvature. This may make sense physically, since only half the point is "wet"
+			if args.geometry == 'box':
+				curve[cornerpos]/=2
+			#Rotate the gradient back to the original coordinates for the contact line
+			Hx=np.array(hx)
+			Hy=np.array(hy)
+			Hx[contactpos] = np.array([np.cos(thetas[k])*hx[k]-np.sin(thetas[k])*hy[k] for k in contactpos])
+			Hy[contactpos] = np.array([np.sin(thetas[k])*hx[k]+np.cos(thetas[k])*hy[k] for k in contactpos])
 			ret=[Hx,Hy,curve]
 		elif args.contact == 'stick':
 			mvals=mesh.coordinates()[idx_top2,dim]
@@ -566,11 +655,14 @@ else:
 norms1=np.zeros((len(t_vec)),float)
 norms2=np.zeros((len(t_vec)),float)
 if(args.geometry=='cylinder'):
-	projections=np.zeros((len(t_vec),args.imodes,2*args.imodes))
+	pmodes=(args.pmodes,2*args.pmodes)
+	projections=np.zeros((len(t_vec),args.pmodes,2*args.pmodes))
 elif(args.geometry=='box'):
-	projections=np.zeros((len(t_vec),args.imodes,args.imodes))
+	pmodes=(np.min([args.pmodes,args.xmesh]),np.min([args.pmodes,args.ymesh]))
+	projections=np.zeros((len(t_vec),np.min([args.pmodes,args.xmesh]), np.min([args.pmodes,args.ymesh])))
 else:
-	projections=np.zeros((len(t_vec),args.imodes))
+	pmodes=np.min([args.pmodes,args.xmesh])
+	projections=np.zeros((len(t_vec),np.min([args.pmodes,args.xmesh])))
 
 #integrate one cycle before initializing the norm
 if(args.bmesh==0):
@@ -598,30 +690,25 @@ for it, t in enumerate(t_vec):
 	norms1[it] = np.linalg.norm(y[:nt])
 	norms2[it] = 2*np.linalg.norm(ode_deriv(t,y)[:nt])/omega
 	#Calculate the projections onto modes for wavenumber estimation
-	projss=None #array of sine-sine mode projections
-	projsc=None #array of sine-cosine mode projections
-	projcs=None #array of cosine-sine mode projections
-	projcc=None #array of cosine-cosine mode projections
+	projss=np.zeros(pmodes) #array of sine-sine mode projections
+	projsc=np.zeros(pmodes) #array of sine-cosine mode projections
+	projcs=np.zeros(pmodes) #array of cosine-sine mode projections
+	projcc=np.zeros(pmodes) #array of cosine-cosine mode projections
+
 	if args.geometry == 'rectangle':
-		projss=np.zeros(args.imodes)
-		projcc=np.zeros(args.imodes)
-		projsc=np.zeros(args.imodes) #not for rectangles
-		projcs=np.zeros(args.imodes) #not for rectangles
-		for n1 in range(args.imodes):
+		for n1 in range(pmodes):
 			for k in range(nt):
 				x,h = mesh.coordinates()[idx_top2[k]]
-				# h = mesh.coordinates()[idx_top2[k],1]
-				projcc[n1] += (h-tankHeight)*np.cos(np.pi*n1*x/tankWidth)
-				projss[n1] += (h-tankHeight)*np.sin(np.pi*n1*x/tankWidth)
+				if(args.contact == 'stick'):
+					projss[n1] += (h-tankHeight)*np.sin(np.pi*n1*x/tankLength)
+				else:
+					projcc[n1] += (h-tankHeight)*np.cos(np.pi*n1*x/tankLength)
+					projss[n1] += (h-tankHeight)*np.sin(np.pi*n1*x/tankLength)
 	elif(args.geometry == 'cylinder'):
-		projss=np.zeros((args.imodes,2*args.imodes))
-		projcc=np.zeros((args.imodes,2*args.imodes))
-		projsc=np.zeros((args.imodes,2*args.imodes)) #not for cylinders
-		projcs=np.zeros((args.imodes,2*args.imodes)) #not for cylinders
-		for n1 in range(args.imodes):
+		for n1 in range(pmodes[0]):
 			#modes with extrema at contact line
-			zeros=jnp_zeros(n1,args.imodes)
-			for n2 in range(args.imodes):
+			zeros=jnp_zeros(n1,int(pmodes[1]/2))
+			for n2 in range(int(pmodes[1]/2)):
 				for k in range(nt):
 					X,Y,h = mesh.coordinates()[idx_top2[k]]
 					r=(X*X+Y*Y)**(0.5)
@@ -629,27 +716,26 @@ for it, t in enumerate(t_vec):
 					projss[n1,n2] += r*(h-tankHeight)*jn(n1,zeros[n2]*r/tankRadius)*np.sin(n1*theta)
 					projcc[n1,n2] += r*(h-tankHeight)*jn(n1,zeros[n2]*r/tankRadius)*np.cos(n1*theta)
 			#modes with zeros at contact line
-			zeros2=jn_zeros(n1,args.imodes)
-			for n2 in range(args.imodes):
+			zeros2=jn_zeros(n1,int(pmodes[1]/2))
+			for n2 in range(int(pmodes[1]/2)):
 				for k in range(nt):
 					X,Y,h = mesh.coordinates()[idx_top2[k]]
 					r=(X*X+Y*Y)**(0.5)
 					theta=np.arctan2(Y,X)
-					projss[n1,args.imodes+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.sin(n1*theta)
-					projcc[n1,args.imodes+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.cos(n1*theta)
+					projss[n1,int(pmodes[1]/2)+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.sin(n1*theta)
+					projcc[n1,int(pmodes[1]/2)+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.cos(n1*theta)
 	elif args.geometry == 'box':
-		projss=np.zeros((args.imodes,args.imodes))
-		projsc=np.zeros((args.imodes,args.imodes))
-		projcs=np.zeros((args.imodes,args.imodes))
-		projcc=np.zeros((args.imodes,args.imodes))
-		for n1 in range(args.imodes):
-			for n2 in range(args.imodes):
+		for n1 in range(pmodes[0]):
+			for n2 in range(pmodes[1]):
 				for k in range(nt):
 					X,Y,h = mesh.coordinates()[idx_top2[k]]
-					projcc[n1,n2] += (h-tankHeight)*np.cos(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
-					projss[n1,n2] += (h-tankHeight)*np.sin(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
-					projsc[n1,n2] += (h-tankHeight)*np.sin(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
-					projcs[n1,n2] += (h-tankHeight)*np.cos(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
+					if(args.contact == 'stick'):
+						projss[n1,n2] += (h-tankHeight)*np.sin(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
+					else:
+						projcc[n1,n2] += (h-tankHeight)*np.cos(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
+						projss[n1,n2] += (h-tankHeight)*np.sin(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
+						projsc[n1,n2] += (h-tankHeight)*np.sin(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
+						projcs[n1,n2] += (h-tankHeight)*np.cos(np.pi*n1*X/tankLength)*np.sin(np.pi*n2*Y/tankWidth)
 	projections[it]=projss*projss+projsc*projsc+projcs*projcs+projcc*projcc #array of mode projections.
 
 	#Output while integrating
@@ -691,7 +777,7 @@ if(len(T1)>2):
 #Estimate the maximum mode projection. The wavenumber from this mode is outputed.
 proj=np.mean(projections[int(itlast/2):itlast+1],axis=0)
 if(args.geometry == 'rectangle'):
-	wave=np.pi*np.argmax(proj)/tankWidth
+	wave=np.pi*np.argmax(proj)/tankLength
 if(args.geometry == 'cylinder'):
 	[wavetheta,waver]=np.where(proj==np.max(proj))
 	if(waver < args.imodes):
@@ -700,12 +786,12 @@ if(args.geometry == 'cylinder'):
 			wave=jn_zeros(wavetheta[0],waver[0]-args.imodes+1)[-1]/tankRadius
 elif (args.geometry == 'box'):
 	[wavex,wavey]=np.array(np.where(proj==np.max(proj)))[:,0]
-	wave=np.pi*wavex/tankLength+np.pi*wavey/tankWidth
+	wave=np.sqrt((np.pi*wavex/tankLength)**2+(np.pi*wavey/tankWidth)**2)
 
 
 #Output results after integration
 paramOut = open(args.output+".txt",'a+')
-paramOut.write("%f %f %f\n" % (frequency, rate, wave))
+paramOut.write("%f %f %f %f %f\n" % (frequency, rate, wave, args.samp, args.sseed))
 paramOut.close()
 if(args.outLevel == 1):
 	if(args.contact == 'stick'):
@@ -726,7 +812,7 @@ if(args.outLevel == 1):
 		fs[1,nt+1:]=mesh.coordinates()[idx_top2,1]
 		np.savetxt(args.output+"fs.dat",fs)
 
-print("%f %f %f %f %f" % (args.freq, args.acceleration, frequency, rate, wave))
+print("%f %f %f %f %f %f %f" % (args.freq, args.acceleration, frequency, rate, wave, args.samp, args.sseed))
 print("runtime %.2f seconds" % (time.time() - t1))
 
 sys.stdout.flush()
