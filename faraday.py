@@ -212,7 +212,6 @@ else:
 			y0[k] = val
 #Substrate shape
 h0 = np.zeros(nb, float)
-np.random.seed(args.sseed)
 if (os.path.exists(args.output+"substrate.dat")):
 	print("Using substrate from files")
 	substrateFile=open(args.output+"substrate.dat", 'r')
@@ -236,9 +235,13 @@ if (os.path.exists(args.output+"substrate.dat")):
 		subcc=args.samp*np.array([[float(i) for i in substrateFile.readline().split()] for j in range(args.smodes)])
 	substrateFile.close()
 else:
+	np.random.seed(args.sseed)
 	if(args.geometry=='rectangle'):
 		ssin=2*args.samp*(np.random.random(args.smodes)-0.5)
 		scos=2*args.samp*(np.random.random(args.smodes)-0.5)
+		ssin[1::2]=0 #Don't use half-integer modes for random substrates
+		scos[1::2]=0 #Don't use half-integer modes for random substrates
+		scos[0]=0 #Volume conservation
 	elif(args.geometry=='cylinder'):
 		ssin=2*args.samp*(np.random.random((args.smodes,args.smodes))-0.5)
 		scos=2*args.samp*(np.random.random((args.smodes,args.smodes))-0.5)
@@ -247,7 +250,15 @@ else:
 		subsc=2*args.samp*(np.random.random((args.smodes,args.smodes))-0.5)
 		subcs=2*args.samp*(np.random.random((args.smodes,args.smodes))-0.5)
 		subcc=2*args.samp*(np.random.random((args.smodes,args.smodes))-0.5)
+		subss[1::2]=0 #Don't use half-integer modes for random substrates
+		subsc[1::2]=0 #Don't use half-integer modes for random substrates
+		subcs[1::2]=0 #Don't use half-integer modes for random substrates
+		subcc[1::2]=0 #Don't use half-integer modes for random substrates
+		subcc=0 #Volume conservation
+
 if(args.geometry=='rectangle'):
+	print(ssin)
+	print(scos)
 	for k in range(nb):
 		X = mesh.coordinates()[idx_bottom[k],0]
 		val=0.0
