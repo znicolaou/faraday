@@ -294,6 +294,8 @@ elif(args.geometry=='box'):
 				val+=subcc[n1,n2]*np.cos(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
 		h0[k] = val
 
+if args.samp != 0.0:
+	h0 *= args.samp/np.max(h0)
 if np.any(h0 > tankHeight):
 	print("Bad substrate")
 	quit()
