@@ -294,7 +294,7 @@ elif(args.geometry=='box'):
 				val+=subcc[n1,n2]*np.cos(np.pi*n1*X/tankLength)*np.cos(np.pi*n2*Y/tankWidth)
 		h0[k] = val
 
-if args.samp != 0.0:
+if args.samp != 0.0 and np.max(h0) != 0:
 	h0 *= args.samp/np.max(h0)
 if np.any(h0 > tankHeight):
 	print("Bad substrate")
@@ -708,24 +708,35 @@ for it, t in enumerate(t_vec):
 					projss[n1] += (h-tankHeight)*np.sin(np.pi*n1*x/tankLength)
 	elif(args.geometry == 'cylinder'):
 		for n1 in range(pmodes[0]):
-			#modes with extrema at contact line
-			zeros=jnp_zeros(n1,int(pmodes[1]/2))
-			for n2 in range(int(pmodes[1]/2)):
-				for k in range(nt):
-					X,Y,h = mesh.coordinates()[idx_top2[k]]
-					r=(X*X+Y*Y)**(0.5)
-					theta=np.arctan2(Y,X)
-					projss[n1,n2] += r*(h-tankHeight)*jn(n1,zeros[n2]*r/tankRadius)*np.sin(n1*theta)
-					projcc[n1,n2] += r*(h-tankHeight)*jn(n1,zeros[n2]*r/tankRadius)*np.cos(n1*theta)
-			#modes with zeros at contact line
-			zeros2=jn_zeros(n1,int(pmodes[1]/2))
-			for n2 in range(int(pmodes[1]/2)):
-				for k in range(nt):
-					X,Y,h = mesh.coordinates()[idx_top2[k]]
-					r=(X*X+Y*Y)**(0.5)
-					theta=np.arctan2(Y,X)
-					projss[n1,int(pmodes[1]/2)+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.sin(n1*theta)
-					projcc[n1,int(pmodes[1]/2)+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.cos(n1*theta)
+			if(args.contact == 'stick'):
+				#modes with zeros at contact line
+				zeros2=jn_zeros(n1,int(pmodes[1]/2))
+				for n2 in range(int(pmodes[1]/2)):
+					for k in range(nt):
+						X,Y,h = mesh.coordinates()[idx_top2[k]]
+						r=(X*X+Y*Y)**(0.5)
+						theta=np.arctan2(Y,X)
+						projss[n1,int(pmodes[1]/2)+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.sin(n1*theta)
+						projcc[n1,int(pmodes[1]/2)+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.cos(n1*theta)
+			else:
+				#modes with extrema at contact line
+				zeros=jnp_zeros(n1,int(pmodes[1]/2))
+				for n2 in range(int(pmodes[1]/2)):
+					for k in range(nt):
+						X,Y,h = mesh.coordinates()[idx_top2[k]]
+						r=(X*X+Y*Y)**(0.5)
+						theta=np.arctan2(Y,X)
+						projss[n1,n2] += r*(h-tankHeight)*jn(n1,zeros[n2]*r/tankRadius)*np.sin(n1*theta)
+						projcc[n1,n2] += r*(h-tankHeight)*jn(n1,zeros[n2]*r/tankRadius)*np.cos(n1*theta)
+				#modes with zeros at contact line
+				zeros2=jn_zeros(n1,int(pmodes[1]/2))
+				for n2 in range(int(pmodes[1]/2)):
+					for k in range(nt):
+						X,Y,h = mesh.coordinates()[idx_top2[k]]
+						r=(X*X+Y*Y)**(0.5)
+						theta=np.arctan2(Y,X)
+						projss[n1,int(pmodes[1]/2)+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.sin(n1*theta)
+						projcc[n1,int(pmodes[1]/2)+n2] += r*(h-tankHeight)*jn(n1,zeros2[n2]*r/tankRadius)*np.cos(n1*theta)
 	elif args.geometry == 'box':
 		for n1 in range(pmodes[0]):
 			for n2 in range(pmodes[1]):
