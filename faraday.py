@@ -254,7 +254,7 @@ else:
 		subsc[1::2]=0 #Don't use half-integer modes for random substrates
 		subcs[1::2]=0 #Don't use half-integer modes for random substrates
 		subcc[1::2]=0 #Don't use half-integer modes for random substrates
-		subcc=0 #Volume conservation
+		subcc[0]=0 #Volume conservation
 
 if(args.geometry=='rectangle'):
 	for k in range(nb):
