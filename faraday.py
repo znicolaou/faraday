@@ -398,7 +398,26 @@ if args.outLevel == 1:
 		for j in range(len(mesh.cells()[i])):
 			print(mesh.cells()[i,j],file=paramOut, end=" ")
 	print('', file=paramOut)
-	paramOut.write("Results:\n")
+	paramOut.write("Substrate modes\n")
+	if (args.geometry == 'box'):
+		for i in range(len(subss)):
+			for j in range(len(subss)):
+				print(subss[i,j], file=paramOut, end=" ")
+		for i in range(len(subsc)):
+			for j in range(len(subsc)):
+				print(subsc[i,j], file=paramOut, end=" ")
+		for i in range(len(subcs)):
+			for j in range(len(subcs)):
+				print(subcs[i,j], file=paramOut, end=" ")
+		for i in range(len(subcc)):
+			for j in range(len(subcc)):
+				print(subcc[i,j], file=paramOut, end=" ")
+	else:
+		for i in range(len(ssin)):
+			print(ssin[i],file=paramOut, end=" ")
+		for i in range(len(scos)):
+			print(scos[i],file=paramOut, end=" ")
+	paramOut.write("\nResults\n")
 	paramOut.close()
 paramOut = open(args.output+".txt",'a+')
 paramOut.write("%f %f " % (args.freq, args.acceleration))
