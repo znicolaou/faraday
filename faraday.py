@@ -666,6 +666,15 @@ else:
 	pmodes=np.min([args.pmodes,args.xmesh])
 	projections=np.zeros((len(t_vec),np.min([args.pmodes,args.xmesh])))
 
+#if tmax=0, change the height to lie below the substrate, print, and quit.  This is for 3d printing.
+if tmax==0:
+	max=np.max(h0)
+	min=np.min(h0)
+	y0=np.zeros(nt)-2*tankHeight
+	movemesh(y0,h0)
+	np.save(args.output,[np.array(mesh.coordinates())])
+	print("runtime %.2f seconds" % (time.time() - t1))
+	quit()
 #integrate one cycle before initializing the norm
 if(args.bmesh==0):
 	movemesh(y0,h0)
