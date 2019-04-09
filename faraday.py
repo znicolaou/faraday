@@ -98,8 +98,20 @@ def refine_top(mesh):
 	for i in topcells:
 		cell_markers.set_value(i,True)
 	return refine(mesh,cell_markers)
+def refine_bottom(mesh):
+	bottomvertices = np.array(np.where(np.abs(mesh.coordinates()[:,dim])< 10*DOLFIN_EPS)[0])
+	bottomcells=[]
+	for i in range(len(mesh.cells())):
+		for vertex in mesh.cells()[i]:
+			if(np.any(bottomvertices==vertex)):
+				bottomcells.append(i)
+	cell_markers=cpp.mesh.MeshFunctionBool(mesh,dim+1)
+	for i in bottomcells:
+		cell_markers.set_value(i,True)
+	return refine(mesh,cell_markers)
 for i in range(args.refinement):
 	mesh=refine_top(mesh)
+	mesh=refine_bottom(mesh)
 
 #indices of all top coordinates
 idx_top2 = np.array(np.where(np.abs(mesh.coordinates()[:,dim]-meshHeight)< 10*DOLFIN_EPS)[0])
@@ -689,7 +701,7 @@ else:
 if tmax==0:
 	max=np.max(h0)
 	min=np.min(h0)
-	y0=np.zeros(nt)-2*tankHeight
+	y0=np.zeros(nt)-2*tankHeight-1
 	movemesh(y0,h0)
 	np.save(args.output,[np.array(mesh.coordinates())])
 	print("runtime %.2f seconds" % (time.time() - t1))
