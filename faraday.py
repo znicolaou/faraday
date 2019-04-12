@@ -701,7 +701,7 @@ else:
 if tmax==0:
 	max=np.max(h0)
 	min=np.min(h0)
-	y0=np.zeros(nt)-2*tankHeight-1
+	y0=np.zeros(nt)#-2*tankHeight-1
 	movemesh(y0,h0)
 	np.save(args.output,[np.array(mesh.coordinates())])
 	print("runtime %.2f seconds" % (time.time() - t1))
