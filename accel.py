@@ -13,7 +13,7 @@ from scipy.signal import argrelextrema
 from scipy.signal import argrelmax
 
 def initialize():
-    file=open((filebase+"/"+filebase+".txt"),"w")
+    file=open((filebase+"/"+filebase+".out"),"w")
     print(*sys.argv, file=file)
     file.close()
     program="int count = 0;"+\
@@ -40,7 +40,7 @@ def get_sample():
     if run==1:
         print(sys.platform)
         if sys.platform == "linux" or sys.platform == "linux2":
-            print(*["./arduino-cli-linux", "compile", "--fqbn", "arduino:samd:mkr1000", filebase])
+            print(*["./arduino-cli-linux", "compile", "--fqbn", "arduino:avr:uno", filebase])
             compile=subprocess.run(["./arduino-cli-linux", "compile", "--fqbn", "arduino:avr:uno", filebase])
             subprocess.run(["./arduino-cli-linux", "upload", "-p", "/dev/tty0", "--fqbn", "arduino:avr:uno", filebase])
             ser = serial.Serial('/dev/tty0', 115200)
@@ -51,8 +51,8 @@ def get_sample():
             ser = serial.Serial('/dev/cu.usbserial-DN05KUXR', 115200)
         elif sys.platform == "win32":
             subprocess.run(["./arduino-cli-windows.exe", "compile", "--fqbn", "arduino:avr:uno", filebase])
-            subprocess.run(["./arduino-cli-windows.exe", "upload", "-p", "/dev/tty.usbserial-DN05KUXR", "--fqbn", "arduino:avr:uno", filebase])
-            ser = serial.Serial('/dev/tty.usbserial-DN05KUXR', 115200)
+            subprocess.run(["./arduino-cli-windows.exe", "upload", "-p", "COM3", "--fqbn", "arduino:avr:uno", filebase])
+            ser = serial.Serial('COM3', 115200)
         print('Reading serial port')
         ser.write(33)
         sleep(0.1)
@@ -69,12 +69,12 @@ def get_sample():
                 ylst.append(int(ser.readline().decode("utf-8")))
             zlst.append(int(ser.readline().decode("utf-8")))
             tlst.append(0.001*int(ser.readline().decode("utf-8")))
-        amax=3
-        amin=-3
-        zlst=amin+(amax-amin)/(3.0/5.0*1023)*zlst
+        amax=5
+        amin=-5
+        zlst=amin+(amax-amin)/(3.3/5.0*1024)*np.array(zlst)
         if(xy==1):
-            xlst=amin+(amax-amin)/(3.0/5.0*1023)*xlst
-            ylst=amin+(amax-amin)/(3.0/5.0*1023)*ylst
+            xlst=amin+(amax-amin)/(3.3/5.0*1024)*np.array(xlst)
+            ylst=amin+(amax-amin)/(3.3/5.0*1024)*np.array(ylst)
 
     else:
         if(xy==1):
@@ -92,25 +92,25 @@ def get_sample():
     if args.freq >0:
         freq0=args.freq
     else:
-        peaks=argrelextrema(zlst,np.greater_equal)[0][1:-1]
-        peaks2=peaks[np.where(np.diff(peaks)>5)][1:-1]
-        print(np.diff(peaks2))
-        freq0=1.0/np.mean(np.diff(tlst[peaks2]))
+        freq0=(1+np.argmax(np.abs(np.fft.rfft(zlst))[1:]))/tlst[-1]
     acc0=0.5*(np.max(zlst)-np.min(zlst))
-    c0=np.mean(zlst)
-    if (zlst[0]-c0)/acc0>1:
+    cx=np.mean(xlst)
+    cy=np.mean(ylst)
+    cz=np.mean(zlst)
+    if (zlst[0]-cz)/acc0>1:
         phi0=np.pi/2
-    elif (zlst[0]-c0)/acc0<-1:
+    elif (zlst[0]-cz)/acc0<-1:
         phi0=-np.pi/2
     elif (zlst[1]>zlst[0]):
-        phi0=np.arcsin((zlst[0]-c0)/acc0)
+        phi0=np.arcsin((zlst[0]-cz)/acc0)
     else:
-        phi0=np.pi-np.arcsin((zlst[0]-c0)/acc0)
-    popt, pcov = curve_fit(sinfunc, tlst, zlst, p0=[acc0,freq0,phi0,c0])
+        phi0=np.pi-np.arcsin((zlst[0]-cz)/acc0)
+    popt, pcov = curve_fit(sinfunc, tlst, zlst, p0=[acc0,freq0,phi0,cz])
     acc, freq, phi, c = popt
     dacc, dfreq, dphi, dc = np.sqrt(np.diag(pcov))
-    print("[acc0,freq0,phi0,c0]=",[acc0,freq0,phi0,c0])
+    print("[acc0,freq0,phi0,cx,cy,cz]=",[acc0,freq0,phi0,cx,cy,cz])
     print("[acc,freq,phi,c]=",popt)
+    print()
     return xlst,ylst,zlst,tlst,acc,freq,phi,c
 
 def save_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c):
@@ -128,9 +128,9 @@ def save_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c):
 def plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c):
     if xy:
         plt.subplot(233,xlabel="Time (s)",ylabel="Acceleration (g)",title="X acceleration",ylim=(-0.5,0.5))
-        plt.plot(tlst,xlst-np.mean(xlst),'bx',markersize=2.0)
+        plt.plot(tlst,xlst,'bx',markersize=2.0)
         plt.subplot(234,xlabel="Time (s)",ylabel="Acceleration (g)",title="Y acceleration",ylim=(-0.5,0.5))
-        plt.plot(tlst,ylst-np.mean(ylst),'bx',markersize=2.0)
+        plt.plot(tlst,ylst,'bx',markersize=2.0)
     plt.subplot(231,xlabel="Time (s)",ylabel="Acceleration (g)",title="Z acceleration",ylim=(-4,4))
     plt.plot(tlst,np.array([sinfunc(t,acc,freq,phi,c) for t in tlst]),'r')
     plt.plot(tlst,zlst,'bx',markersize=2.0)
@@ -143,6 +143,7 @@ def plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c):
     plt.savefig(filebase+"/"+filebase+"%i"%(count)+".pdf")
     plt.show()
 
+def plot_sweep():
     dat=np.loadtxt(filebase+"/"+filebase+".txt")
     plt.subplot(111,xlabel="Frequency (Hz)",ylabel="Acceleration (g)")
     plt.plot(dat[:,2],dat[:,1],'bx',markersize=2.0)
@@ -152,11 +153,10 @@ def plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c):
 #Command-line arguments
 parser = argparse.ArgumentParser(description='Upload an Arduino sketch and read output from the accelerometer.')
 parser.add_argument("--filebase", type=str, required=True, dest='filebase', help='Base string for file output')
-parser.add_argument("--Nt", type=int, required=False, dest='Nt', default=200, help='Number of buffer ints. Default 200.')
+parser.add_argument("--Nt", type=int, required=False, dest='Nt', default=150, help='Number of buffer ints. Default 150.')
 parser.add_argument("--delay", type=float, required=False, dest='delay', default=2.0, help='Delay between samples. Default 2.0.')
 parser.add_argument("--xy", type=int, choices=[0,1], required=False, default=1, dest='xy', help='Flag for x and y output. Default 1.')
 parser.add_argument("--freq", type=float, required=False, default=0, dest='freq', help='Frequency for fitting')
-parser.add_argument("--plot", type=int, choices=[0,1], required=False, default=0, dest='plot', help='Flag for plotting')
 parser.add_argument("--run", type=int, choices=[0,1], required=False, default=1, dest='run', help='Flag for running arduino and reading output; if 0, data is read from previous runs if files exist')
 parser.add_argument("--count", type=int, required=False, default=0, dest='count', help='Initial count')
 
@@ -165,7 +165,6 @@ filebase=args.filebase
 Nt=args.Nt
 delay=args.delay
 xy=args.xy
-plot=args.plot
 run=args.run
 count=args.count
 
@@ -187,15 +186,20 @@ c=0
 xlst,ylst,zlst,tlst,acc,freq,phi,c=get_sample()
 plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c)
 while True:
-    print("Enter 'p' to plot, 's' to save data, 'r' to resample, or 'q' to quit")
+    print("Enter 'p' to plot current data, 'P' to plot sweep of saved data, 's' to save data, 'r' to resample, or 'q' to quit")
     input=sys.stdin.read(1)
     if input == 's':
         save_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c)
     elif input == 'p':
         plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c)
+    elif input == 'P':
+        plot_sweep()
     elif input == 'r':
         count=count+1
-        xlst,ylst,zlst,tlst,acc,freq,phi,c=get_sample()
+        try:
+            xlst,ylst,zlst,tlst,acc,freq,phi,c=get_sample()
+        except:
+            print("Fit failed!")
     elif input == 'q':
         break
     elif input == '\n':
