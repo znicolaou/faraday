@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from time import sleep
-from matplotlib import pyplot as plt
 import numpy as np
 import serial
 import subprocess
@@ -11,9 +10,14 @@ import struct
 from scipy.optimize import curve_fit
 from scipy.signal import argrelextrema
 from scipy.signal import argrelmax
+import matplotlib
+matplotlib.use('TKAgg')
+import matplotlib.pyplot as plt
 
+
+#Record the argv in .out file, and create the Arduinio sketch
 def initialize():
-    file=open((filebase+"/"+filebase+".out"),"w")
+    file=open((data+"/"+filebase+"/"+filebase+".out"),"w")
     print(*sys.argv, file=file)
     file.close()
     program="int count = 0;"+\
@@ -26,12 +30,14 @@ def initialize():
       "if(count == %i) {for (int i=0; i<%i; i++){"%(Nt, Nt)+\
             ("Serial.println(Xvals[i]); Serial.println(Yvals[i]);" if xy==1 else "")+\
             "Serial.println(Zvals[i]); Serial.println(tvals[i]); } count=0;} delay(%f);}"%(delay)
-    file=open(filebase+"/"+filebase+".ino","w")
+    file=open(data+"/"+filebase+"/"+filebase+".ino","w")
     file.write(program)
     file.close()
 
+#Fitting sinusoidal function
 def sinfunc(t, A, f, p, c):  return A * np.sin(2*np.pi*f*t + p) + c
 
+#Send the sketch to the Arduino and read the serial port to retrieve Nt data points
 def get_sample():
     xlst=[]
     ylst=[]
@@ -40,18 +46,18 @@ def get_sample():
     if run==1:
         print(sys.platform)
         if sys.platform == "linux" or sys.platform == "linux2":
-            print(*["./arduino-cli-linux", "compile", "--fqbn", "arduino:avr:uno", filebase])
-            compile=subprocess.run(["./arduino-cli-linux", "compile", "--fqbn", "arduino:avr:uno", filebase])
-            subprocess.run(["./arduino-cli-linux", "upload", "-p", "/dev/tty0", "--fqbn", "arduino:avr:uno", filebase])
+            print(*["./arduino-cli-linux", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+            compile=subprocess.run(["./arduino-cli-linux", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+            subprocess.run(["./arduino-cli-linux", "upload", "-p", "/dev/tty0", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
             ser = serial.Serial('/dev/tty0', 115200)
         elif sys.platform == "darwin":
-            subprocess.run(["./arduino-cli-mac", "compile", "--fqbn", "arduino:avr:uno", filebase])
-            subprocess.run(["./arduino-cli-mac", "upload", "-p", "/dev/cu.usbserial-DN05KUXR", "--fqbn", "arduino:avr:uno", filebase])
-            print(*["./arduino-cli-mac", "upload", "-p", "/dev/cu.usbserial-DN05KUXR", "--fqbn", "arduino:avr:uno", filebase])
+            subprocess.run(["./arduino-cli-mac", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+            subprocess.run(["./arduino-cli-mac", "upload", "-p", "/dev/cu.usbserial-DN05KUXR", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+            print(*["./arduino-cli-mac", "upload", "-p", "/dev/cu.usbserial-DN05KUXR", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
             ser = serial.Serial('/dev/cu.usbserial-DN05KUXR', 115200)
         elif sys.platform == "win32":
-            subprocess.run(["./arduino-cli-windows.exe", "compile", "--fqbn", "arduino:avr:uno", filebase])
-            subprocess.run(["./arduino-cli-windows.exe", "upload", "-p", "COM3", "--fqbn", "arduino:avr:uno", filebase])
+            subprocess.run(["./arduino-cli-windows.exe", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+            subprocess.run(["./arduino-cli-windows.exe", "upload", "-p", "COM3", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
             ser = serial.Serial('COM3', 115200)
         print('Reading serial port')
         ser.write(33)
@@ -78,10 +84,10 @@ def get_sample():
 
     else:
         if(xy==1):
-            xlst=np.load(filebase+"/"+filebase+"x%i"%(count)+".npy")
-            ylst=np.load(filebase+"/"+filebase+"y%i"%(count)+".npy")
-        tlst=np.load(filebase+"/"+filebase+"t%i"%(count)+".npy")
-        zlst=np.load(filebase+"/"+filebase+"z%i"%(count)+".npy")
+            xlst=np.load(data+"/"+filebase+"/"+filebase+"x%i"%(count)+".npy")
+            ylst=np.load(data+"/"+filebase+"/"+filebase+"y%i"%(count)+".npy")
+        tlst=np.load(data+"/"+filebase+"/"+filebase+"t%i"%(count)+".npy")
+        zlst=np.load(data+"/"+filebase+"/"+filebase+"z%i"%(count)+".npy")
 
     if(xy==1):
         xlst=np.array(xlst)
@@ -111,20 +117,22 @@ def get_sample():
     print("[acc0,freq0,phi0,cx,cy,cz]=",[acc0,freq0,phi0,cx,cy,cz])
     print("[acc,freq,phi,c]=",popt)
     print()
-    return xlst,ylst,zlst,tlst,acc,freq,phi,c
+    return xlst,ylst,zlst,tlst,acc,freq,phi,c,cx,cy
 
-def save_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c):
-    file=open((filebase+"/"+filebase+".txt"),"a+")
-    print("%i %f %f %f %f"%(count, acc, freq, phi, c),file=file)
+#Append the fit parameters to .txt file, and save the time series
+def save_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,cz,cx,cy):
+    file=open((data+"/"+filebase+"/"+filebase+".txt"),"a+")
+    print("%i %f %f %f %f %f %f"%(count, acc, freq, phi, cz, cx, cy),file=file)
     file.close()
     if xy:
-        np.save(filebase+"/"+filebase+"x"+"%i"%(count),xlst)
-        np.save(filebase+"/"+filebase+"y"+"%i"%(count),ylst)
+        np.save(data+"/"+filebase+"/"+filebase+"x"+"%i"%(count),xlst)
+        np.save(data+"/"+filebase+"/"+filebase+"y"+"%i"%(count),ylst)
         xlst=np.array(xlst)
         ylst=np.array(ylst)
-    np.save(filebase+"/"+filebase+"t"+"%i"%(count),tlst)
-    np.save(filebase+"/"+filebase+"z"+"%i"%(count),zlst)
+    np.save(data+"/"+filebase+"/"+filebase+"t"+"%i"%(count),tlst)
+    np.save(data+"/"+filebase+"/"+filebase+"z"+"%i"%(count),zlst)
 
+#Plot the time series and save a pdf
 def plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c):
     if xy:
         plt.subplot(233,xlabel="Time (s)",ylabel="Acceleration (g)",title="X acceleration",ylim=(-0.5,0.5))
@@ -140,19 +148,26 @@ def plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c):
     plt.plot(np.arange(len(tlst)),tlst,'bx',markersize=2.0)
 
     plt.tight_layout()
-    plt.savefig(filebase+"/"+filebase+"%i"%(count)+".pdf")
-    plt.show()
+    plt.savefig(data+"/"+filebase+"/"+filebase+"%i"%(count)+".pdf")
+    plt.show(block=False)
+    plt.pause(0.1)
 
+#Plot the acceleration vs. frequency for saved data
 def plot_sweep():
-    dat=np.loadtxt(filebase+"/"+filebase+".txt")
-    plt.subplot(111,xlabel="Frequency (Hz)",ylabel="Acceleration (g)")
-    plt.plot(dat[:,2],dat[:,1],'bx',markersize=2.0)
-    plt.savefig(filebase+"/"+filebase+".pdf")
-    plt.show()
+    try:
+        dat=np.loadtxt(data+"/"+filebase+"/"+filebase+".txt")
+        plt.subplot(111,xlabel="Frequency (Hz)",ylabel="Acceleration (g)")
+        plt.plot(dat[:,2],dat[:,1],'bx',markersize=2.0)
+        plt.savefig(data+"/"+filebase+"/"+filebase+".pdf")
+        plt.show(block=False)
+        plt.pause(0.1)
+    except:
+        print("Could not plot - did you save any data?")
 
 #Command-line arguments
 parser = argparse.ArgumentParser(description='Upload an Arduino sketch and read output from the accelerometer.')
 parser.add_argument("--filebase", type=str, required=True, dest='filebase', help='Base string for file output')
+parser.add_argument("--directory", type=str, required=False, default='data', dest='data', help='Directory to save files')
 parser.add_argument("--Nt", type=int, required=False, dest='Nt', default=150, help='Number of buffer ints. Default 150.')
 parser.add_argument("--delay", type=float, required=False, dest='delay', default=2.0, help='Delay between samples. Default 2.0.')
 parser.add_argument("--xy", type=int, choices=[0,1], required=False, default=1, dest='xy', help='Flag for x and y output. Default 1.')
@@ -162,47 +177,56 @@ parser.add_argument("--count", type=int, required=False, default=0, dest='count'
 
 args = parser.parse_args()
 filebase=args.filebase
+data=args.data
 Nt=args.Nt
 delay=args.delay
 xy=args.xy
 run=args.run
 count=args.count
 
-if not os.path.isdir(filebase):
-    os.mkdir(filebase)
+if not os.path.isdir(data+"/"+filebase):
+    os.mkdir(data)
+    os.mkdir(data+"/"+filebase)
 
-if run==1:
-    try:
-        initialize()
-    except:
-        print("Initialization failed! Arduino disconnected or busy?")
-        quit()
+#Main loop
+initialize()
 
-input=''
-acc=0
-freq=0
-phi=0
-c=0
-xlst,ylst,zlst,tlst,acc,freq,phi,c=get_sample()
-plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c)
+try:
+    xlst,ylst,zlst,tlst,acc,freq,phi,cz,cx,cy=get_sample()
+except:
+    print("Failed to get sample or fit data! Is Arduino busy?")
 while True:
-    print("Enter 'p' to plot current data, 'P' to plot sweep of saved data, 's' to save data, 'r' to resample, or 'q' to quit")
-    input=sys.stdin.read(1)
-    if input == 's':
-        save_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c)
-    elif input == 'p':
-        plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c)
-    elif input == 'P':
-        plot_sweep()
-    elif input == 'r':
+    print("Enter 'p' to plot current data, 'P' to plot sweep of saved data, 's' to save data, 'r' to resample, 'd' to specify delay, or 'q' to quit")
+    input=sys.stdin.readline()
+    if input == 's\n':
+        save_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,cz,cx,cy)
         count=count+1
+    elif input == 'p\n':
+        plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,cz)
+    elif input == 'P\n':
+        plot_sweep()
+    elif input == 'r\n':
         try:
-            xlst,ylst,zlst,tlst,acc,freq,phi,c=get_sample()
+            xlst,ylst,zlst,tlst,acc,freq,phi,cz,cx,cy=get_sample()
         except:
             print("Fit failed!")
-    elif input == 'q':
+    elif input=='d\n':
+        print("Enter delay in ms (greater than 2.0), or 'a' for automatic based on last frequency:")
+        line=sys.stdin.readline()
+        try:
+            if line == 'a\n':
+                delay = 10*1e3/freq/Nt #10 cycles in sample
+            else:
+                delay=float(line)
+        except:
+            print("Bad input %s"%(line))
+        if delay < 2.0:
+            delay = 2.0
+        print("Delay set to %f"%(delay))
+        initialize()
+    elif input == 'q\n':
         break
     elif input == '\n':
         continue
     else:
-        print("Unrecognized input%c, try again"%(input))
+        print("Unrecognized input '%s' Try again"%(input))
