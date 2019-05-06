@@ -95,10 +95,10 @@ optional arguments:
   --count COUNT        Initial count. Default 0.  
   ```
 
-# Input file formats
+# Input files
 For faraday.py script, if the file filebasesubstrate.dat exists, the script reads a line containing an integer Nmodes giving the number of modes, followed by lines which each contain Nmodes numbers specifying the sine and cosine mode amplitudes for the substrate shape. For rectangle geometries, there is a single sine and a single cosine line.  For the box geometries, there are Nmodes lines for sine-sine modes, followed by Nmodes lines for sine-cosine modes, followed by Nmodes lines for cosine-sine modes, followed by Nmodes lines for cosine-cosine modes.  For the cylinder geometry, there are Nmodes lines for Bessel-sine modes, followed Nmodes lines for Bessel-cosine modes.  If the file filebaseic.dat exists, the script will read a line of text which contains the surface potentials values and height, separated by spaces followed by a line containing the coordinates of the surface mesh points.  
 
-# Output file formats
+# Output files
 For faraday.py script, the script will always append to (or create) the file filebase.txt file a line of text containing the applied frequency, acceleration, measured frequency, measured growth rate, measured wave number, substrate inhomogeneity height, and random seed.  If the output flag is set to 1, the script will list more information in filebase.txt in a readable format, a filebasefs.dat containing the final surface height, which can be used as an initial condition in other simulations by copying it to a filebaseic.dat, and also create binary files filebase.npy containing the mesh evolution in binary format and filebasenorms.npy containing the surface disturbance norms, which can be parsed with the Mathematica plot notebooks.  
 
 For the accel.py script, the script will append a line to filebase.txt each time data is saved which contains the measurement count, the measured acceleration amplitude, the measured frequency, the measured initial phase, the measured mean z acceleration, the measured mean x acceleration, and the measured mean y acceleration. It will also create files filebase{x,y,z}count.npy for each saved data which contain binary time series for each direction.  Every time the data is plotted, a file filebasecount.pdf is also saved, and when the saved data is plotted, a file filebase.pdf is created.
