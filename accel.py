@@ -94,11 +94,12 @@ def get_sample():
         ylst=np.array(ylst)
     tlst=np.array(tlst)
     zlst=np.array(zlst)
-
-    if args.freq >0:
-        freq0=args.freq
-    else:
-        freq0=(1+np.argmax(np.abs(np.fft.rfft(zlst))[1:]))/tlst[-1]
+    #
+    # if args.freq >0:
+    #     freq0=args.freq
+    # else:
+    freq0=(1+np.argmax(np.abs(np.fft.rfft(zlst))[1:]))/tlst[-1]
+    
     acc0=0.5*(np.max(zlst)-np.min(zlst))
     cx=np.mean(xlst)
     cy=np.mean(ylst)
@@ -166,14 +167,14 @@ def plot_sweep():
 
 #Command-line arguments
 parser = argparse.ArgumentParser(description='Upload an Arduino sketch and read output from the accelerometer.')
-parser.add_argument("--filebase", type=str, required=True, dest='filebase', help='Base string for file output')
-parser.add_argument("--directory", type=str, required=False, default='data', dest='data', help='Directory to save files')
+parser.add_argument("--filebase", type=str, required=True, dest='filebase', help='Base string for file output.')
+parser.add_argument("--directory", type=str, required=False, default='data', dest='data', help='Directory to save files. Default "data".')
 parser.add_argument("--Nt", type=int, required=False, dest='Nt', default=150, help='Number of buffer ints. Default 150.')
 parser.add_argument("--delay", type=float, required=False, dest='delay', default=2.0, help='Delay between samples. Default 2.0.')
 parser.add_argument("--xy", type=int, choices=[0,1], required=False, default=1, dest='xy', help='Flag for x and y output. Default 1.')
-parser.add_argument("--freq", type=float, required=False, default=0, dest='freq', help='Frequency for fitting')
-parser.add_argument("--run", type=int, choices=[0,1], required=False, default=1, dest='run', help='Flag for running arduino and reading output; if 0, data is read from previous runs if files exist')
-parser.add_argument("--count", type=int, required=False, default=0, dest='count', help='Initial count')
+# parser.add_argument("--freq", type=float, required=False, default=0, dest='freq', help='Frequency for fitting')
+parser.add_argument("--run", type=int, choices=[0,1], required=False, default=1, dest='run', help='Flag for running arduino and reading output; if 0, data is read from previous runs if files exist. Default 1.')
+parser.add_argument("--count", type=int, required=False, default=0, dest='count', help='Initial count. Default 0.')
 
 args = parser.parse_args()
 filebase=args.filebase
