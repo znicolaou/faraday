@@ -99,7 +99,7 @@ def get_sample():
     #     freq0=args.freq
     # else:
     freq0=(1+np.argmax(np.abs(np.fft.rfft(zlst))[1:]))/tlst[-1]
-    
+
     acc0=0.5*(np.max(zlst)-np.min(zlst))
     cx=np.mean(xlst)
     cy=np.mean(ylst)
@@ -135,6 +135,7 @@ def save_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,cz,cx,cy):
 
 #Plot the time series and save a pdf
 def plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c):
+    plt.clf()
     if xy:
         plt.subplot(233,xlabel="Time (s)",ylabel="Acceleration (g)",title="X acceleration",ylim=(-0.5,0.5))
         plt.plot(tlst,xlst,'bx',markersize=2.0)
@@ -186,7 +187,8 @@ run=args.run
 count=args.count
 
 if not os.path.isdir(data+"/"+filebase):
-    os.mkdir(data)
+    if not os.path.isdir(data):
+        os.mkdir(data)
     os.mkdir(data+"/"+filebase)
 
 #Main loop
