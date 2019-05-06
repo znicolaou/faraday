@@ -13,7 +13,7 @@ parser.add_argument("--gravity", type=float, default=980.0, dest='g', help='Grav
 parser.add_argument("--acceleration", type=float, default=1.0, dest='acceleration', help='Driving acceleration in terms of gravitational acceleration')
 parser.add_argument("--width", type=float, default=1.0, dest='width', help='Width in cm')
 parser.add_argument("--length", type=float, default=4.0, dest='length', help='Length in cm')
-parser.add_argument("--height", type=float, default=2.0, dest='height', help='Height in cm')
+parser.add_argument("--height", type=float, default=0.5, dest='height', help='Height in cm')
 parser.add_argument("--radius", type=float, default=2.0, dest='radius', help='Radius in cm')
 parser.add_argument("--tension", type=float, default=72.0,dest='sigma', help='Surface tension in dyne/cm^2')
 parser.add_argument("--density", type=float, default=1.0,dest='rho', help='Fluid density in g/cm^3')
@@ -31,9 +31,9 @@ parser.add_argument("--rtol", type=float, default=1e-4, dest='rtol', help='Integ
 parser.add_argument("--atol", type=float, default=1e-8, dest='atol', help='Integration absolute tolerance')
 parser.add_argument("--damp1", type=float, default=2.0, dest='damp1', help='Constant damping coefficient')
 parser.add_argument("--damp3", type=float, default=0.5, dest='damp2', help='Curvature damping coefficient')
-parser.add_argument("--xmesh", type=int, default=10, dest='xmesh', help='Lateral mesh refinement')
+parser.add_argument("--xmesh", type=int, default=50, dest='xmesh', help='Lateral mesh refinement')
 parser.add_argument("--ymesh", type=int, default=5, dest='ymesh', help='Lateral mesh refinement')
-parser.add_argument("--zmesh", type=int, default=5, dest='zmesh', help='Vertical mesh refinement')
+parser.add_argument("--zmesh", type=int, default=10, dest='zmesh', help='Vertical mesh refinement')
 parser.add_argument("--threshold", type=float, default=3.0, dest='thrs', help='Threshold change in log norm magnitude to stop integration')
 parser.add_argument("--refinement", type=int, default=0, dest='refinement', help='Number of refinements for top')
 parser.add_argument("--bmesh", type=int, choices = [0, 1], default = 1, dest='bmesh', help='Flag to move boundary mesh in time stepping. This is faster and tentatively more accurate than the alternative mesh movement, but suffers numerical instabilities for large deviations.')
@@ -226,6 +226,7 @@ else:
 h0 = np.zeros(nb, float)
 if (os.path.exists(args.output+"substrate.dat")):
 	print("Using substrate from files")
+	sys.stdout.flush()
 	substrateFile=open(args.output+"substrate.dat", 'r')
 	if(args.geometry=='rectangle'):
 		args.smodes=int(substrateFile.readline())
@@ -269,6 +270,10 @@ else:
 		subcc[0]=0 #Volume conservation
 
 if(args.geometry=='rectangle'):
+	# np.savetxt("sin.txt", ssin)
+	# np.savetxt("cos.txt", scos)
+	# np.savetxt("range.txt",[mesh.coordinates()[idx_bottom[k],0]/tankLength for k in range(nb)])
+	# quit()
 	for k in range(nb):
 		X = mesh.coordinates()[idx_bottom[k],0]
 		val=0.0
