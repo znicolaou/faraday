@@ -29,7 +29,7 @@ parser.add_argument("--smodes", type=int, default=3, dest='smodes', help='Number
 parser.add_argument("--pmodes", type=int, default=10, dest='pmodes', help='Number of modes to include in wavenumber estimation')
 parser.add_argument("--rtol", type=float, default=1e-4, dest='rtol', help='Integration relative tolerance')
 parser.add_argument("--atol", type=float, default=1e-8, dest='atol', help='Integration absolute tolerance')
-parser.add_argument("--damp1", type=float, default=2.0, dest='damp1', help='Constant damping coefficient')
+parser.add_argument("--damp1", type=float, default=0.5, dest='damp1', help='Constant damping coefficient')
 parser.add_argument("--damp3", type=float, default=0.5, dest='damp2', help='Curvature damping coefficient')
 parser.add_argument("--xmesh", type=int, default=50, dest='xmesh', help='Lateral mesh refinement')
 parser.add_argument("--ymesh", type=int, default=5, dest='ymesh', help='Lateral mesh refinement')
@@ -39,6 +39,7 @@ parser.add_argument("--refinement", type=int, default=0, dest='refinement', help
 parser.add_argument("--bmesh", type=int, choices = [0, 1], default = 1, dest='bmesh', help='Flag to move boundary mesh in time stepping. This is faster and tentatively more accurate than the alternative mesh movement, but suffers numerical instabilities for large deviations.')
 parser.add_argument("--nonlinear", type=int, choices = [0, 1], default = 0, dest='nonlinear', help='Flag to include nonlinear terms')
 parser.add_argument("--geometry", type=str, choices = ['rectangle', 'cylinder', 'box'], default = 'rectangle', dest='geometry', help='Mesh geometry. Options are rectangle, cylinder, and box.')
+parser.add_argument("--boximate", type=int, choices = [0, 1], default = 1, dest='boximate', help='Flag to include approximate transverse curvature for rectange geometries.')
 parser.add_argument("--contact", type=str, choices = ['stick', 'slip', 'periodic'], default = 'stick', dest='contact', help='Contact line boundary conditions. Options are stick, slip, and periodic. periodic is not available for cylinder geometry.')
 parser.add_argument("--nthreads", type=int, default = 1, dest='nthreads', help='Number of threads to allow parallel computations to run over.')
 args = parser.parse_args()
@@ -70,6 +71,7 @@ t_vec = np.arange((args.steps+1)*dt, tmax, dt)
 tankHeight = args.height
 if(args.geometry == 'rectangle'):
 	dim=1 #dimension of the surface
+	tankWidth = args.width
 	tankLength = args.length
 	meshHeight=tankHeight
 	mesh=RectangleMesh(Point(0.0,0.0), Point(tankLength,tankHeight),args.xmesh, args.zmesh, 'right/left')
@@ -184,11 +186,12 @@ else:
 			val=0.0
 			for n1 in range(1,args.imodes):
 				if not args.contact == 'slip':
-					val+=isin[n1]*np.sin(2*np.pi*n1*X/tankLength)
+					val+=isin[n1]*np.sin(np.pi*n1*X/tankLength)
 			for n1 in range(1,args.imodes):
-				if not args.contact == 'stick':
-					val+=icos[n1]*np.cos(2*np.pi*n1*X/tankLength)
+				# if not args.contact == 'stick':
+				val+=icos[n1]*np.cos(np.pi*n1*X/tankLength)
 			y0[k] = val
+		y0=y0-np.mean(y0)
 	elif(args.geometry=='cylinder'):
 		isin=2*args.iamp*(np.random.random((args.imodes,args.imodes))-0.5)
 		icos=2*args.iamp*(np.random.random((args.imodes,args.imodes))-0.5)
@@ -570,6 +573,8 @@ def curvature_top(y):
 			hxx=(vals[1::3]+vals[2::3]-2*vals[0::3])/(delta*delta)
 			if(args.nonlinear==1):
 				curve=hxx/(1+hx*hx)**(1.5)
+			elif args.boximate==1:
+				curve=hxx-y[:nt]*(np.pi/tankWidth)**2
 			else:
 				curve=hxx
 			ret=[hx[:,0],curve[:,0]]
