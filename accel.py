@@ -163,8 +163,9 @@ def plot_sweep():
         plt.savefig(data+"/"+filebase+"/"+filebase+".pdf")
         plt.show(block=False)
         plt.pause(0.1)
-    except:
+    except Exception  as error:
         print("Could not plot - did you save any data?")
+        print(error)
 
 #Command-line arguments
 parser = argparse.ArgumentParser(description='Upload an Arduino sketch and read output from the accelerometer.')
