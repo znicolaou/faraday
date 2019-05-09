@@ -12,7 +12,7 @@ parser.add_argument("--frequency", type=float, default=24.0, dest='freq', help='
 parser.add_argument("--gravity", type=float, default=980.0, dest='g', help='Gravitational acceleration in cm/s^2')
 parser.add_argument("--acceleration", type=float, default=1.0, dest='acceleration', help='Driving acceleration in terms of gravitational acceleration')
 parser.add_argument("--width", type=float, default=1.0, dest='width', help='Width in cm')
-parser.add_argument("--length", type=float, default=4.0, dest='length', help='Length in cm')
+parser.add_argument("--length", type=float, default=3.5, dest='length', help='Length in cm')
 parser.add_argument("--height", type=float, default=0.5, dest='height', help='Height in cm')
 parser.add_argument("--radius", type=float, default=2.0, dest='radius', help='Radius in cm')
 parser.add_argument("--tension", type=float, default=72.0,dest='sigma', help='Surface tension in dyne/cm^2')
@@ -25,12 +25,12 @@ parser.add_argument("--iamp", type=float, default=1e-4, dest='iamp', help='Ampli
 parser.add_argument("--imodes", type=int, default=10, dest='imodes', help='Number of modes to include in random initial conditions')
 parser.add_argument("--sseed", type=int, default=0, dest='sseed', help='Seed for random substrate shape')
 parser.add_argument("--samp", type=float, default=0.0, dest='samp', help='Amplitude for modes in random substrate shape')
-parser.add_argument("--smodes", type=int, default=3, dest='smodes', help='Number of modes to include in random substrate shape')
+parser.add_argument("--smodes", type=int, default=8, dest='smodes', help='Number of modes to include in random substrate shape')
 parser.add_argument("--pmodes", type=int, default=10, dest='pmodes', help='Number of modes to include in wavenumber estimation')
 parser.add_argument("--rtol", type=float, default=1e-4, dest='rtol', help='Integration relative tolerance')
 parser.add_argument("--atol", type=float, default=1e-8, dest='atol', help='Integration absolute tolerance')
-parser.add_argument("--damp1", type=float, default=0.5, dest='damp1', help='Constant damping coefficient')
-parser.add_argument("--damp3", type=float, default=0.5, dest='damp2', help='Curvature damping coefficient')
+parser.add_argument("--damp1", type=float, default=2.0, dest='damp1', help='Constant damping coefficient')
+parser.add_argument("--damp2", type=float, default=0.1, dest='damp2', help='Curvature damping coefficient')
 parser.add_argument("--xmesh", type=int, default=50, dest='xmesh', help='Lateral mesh refinement')
 parser.add_argument("--ymesh", type=int, default=5, dest='ymesh', help='Lateral mesh refinement')
 parser.add_argument("--zmesh", type=int, default=10, dest='zmesh', help='Vertical mesh refinement')
@@ -186,12 +186,12 @@ else:
 			val=0.0
 			for n1 in range(1,args.imodes):
 				if not args.contact == 'slip':
-					val+=isin[n1]*np.sin(np.pi*n1*X/tankLength)
+					val+=isin[n1]*np.sin(2*np.pi*n1*X/tankLength)
 			for n1 in range(1,args.imodes):
-				# if not args.contact == 'stick':
-				val+=icos[n1]*np.cos(np.pi*n1*X/tankLength)
+				if not args.contact == 'stick':
+					val+=icos[n1]*np.cos(2*np.pi*n1*X/tankLength)
 			y0[k] = val
-		y0=y0-np.mean(y0)
+		#y0=y0-np.mean(y0)
 	elif(args.geometry=='cylinder'):
 		isin=2*args.iamp*(np.random.random((args.imodes,args.imodes))-0.5)
 		icos=2*args.iamp*(np.random.random((args.imodes,args.imodes))-0.5)
@@ -462,7 +462,7 @@ dydt = np.zeros(nt*2, float)
 
 #Function for finding curvature
 #Interpolate the mesh to find finite differences, using spacing one tenth the mesh lengh scale
-delta=0.1*meshlen
+delta=0.25*meshlen
 points=[]
 thetas=np.zeros(nt) #TODO: store the theta that the stencil is rotated through for each k so we can rotate the gradient back
 if(dim == 2):
