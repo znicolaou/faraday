@@ -273,10 +273,6 @@ else:
 		subcc[0]=0 #Volume conservation
 
 if(args.geometry=='rectangle'):
-	# np.savetxt("sin.txt", ssin)
-	# np.savetxt("cos.txt", scos)
-	# np.savetxt("range.txt",[mesh.coordinates()[idx_bottom[k],0]/tankLength for k in range(nb)])
-	# quit()
 	for k in range(nb):
 		X = mesh.coordinates()[idx_bottom[k],0]
 		val=0.0
@@ -707,11 +703,11 @@ else:
 	pmodes=np.min([args.pmodes,args.xmesh])
 	projections=np.zeros((len(t_vec),np.min([args.pmodes,args.xmesh])))
 
-#if tmax=0, change the height to lie below the substrate, print, and quit.  This is for 3d printing.
+#if tmax=0, just save the intial mesh with a flat surface.  This is for 3d printing.
 if tmax==0:
 	max=np.max(h0)
 	min=np.min(h0)
-	y0=np.zeros(nt)#-2*tankHeight-1
+	y0=np.zeros(nt)
 	movemesh(y0,h0)
 	np.save(args.output,[np.array(mesh.coordinates())])
 	print("runtime %.2f seconds" % (time.time() - t1))
