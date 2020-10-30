@@ -451,7 +451,7 @@ u = TrialFunction(V)
 v = TestFunction(V)
 a = inner(grad(u), grad(v))*dx
 phi = Function(V)
-f = Expression("0.0", degree=0)
+f=Constant(0.0)
 L = f*v*dx
 bc_exp_top = DynamicFreeSurfaceCondition(element=V.ufl_element())
 bc_top = DirichletBC(V, bc_exp_top, boundary_T, method="pointwise", check_midpoint=False)
