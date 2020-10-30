@@ -5,6 +5,7 @@ import time
 import argparse
 import sys
 
+
 #Command line arguments
 parser = argparse.ArgumentParser(description='Moving mesh simulation for inviscid Faraday waves with inhomogeneous substrate.')
 parser.add_argument("--filebase", type=str, required=True, dest='output', help='Base string for file output')
