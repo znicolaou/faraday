@@ -11,7 +11,7 @@ from scipy.optimize import curve_fit
 from scipy.signal import argrelextrema
 from scipy.signal import argrelmax
 import matplotlib
-matplotlib.use('TKAgg')
+# matplotlib.use('TKAgg')
 import matplotlib.pyplot as plt
 
 
@@ -20,19 +20,31 @@ def initialize():
     file=open((data+"/"+filebase+"/"+filebase+".out"),"w")
     print(*sys.argv, file=file)
     file.close()
-    program="int count = 0;"+\
+    #Add a
+    program="void setup(){Serial.begin(115200);Serial.setTimeout(1);}\nvoid loop(){"+\
+    "if(!Serial.available()){"+\
+    "Serial.readString(); unsigned long t_last; int count = 0;"+\
     (("unsigned short Xvals[%i]; unsigned short Yvals[%i];"%(Nt,Nt)) if xy==1 else "")+\
     ("unsigned short Zvals[%i];\n"%(Nt))+\
     ("unsigned long tvals[%i];\n"%(Nt))+\
-    "void setup(){Serial.begin(115200);}\nvoid loop(){"+\
-      ("Xvals[count]=analogRead(A0); Yvals[count]=analogRead(A1);" if xy==1 else "")+\
-      "Zvals[count]=analogRead(A2); tvals[count]=millis(); count = count+1;"+\
-      "if(count == %i) {for (int i=0; i<%i; i++){"%(Nt, Nt)+\
+    "{ count=0; Zvals[count]=analogRead(A0); t_last=micros(); while(count<%i) {"%(Nt)+\
+    "if(micros()-t_last > 1000*%f) {" %(delay)+\
+      ("Xvals[count]=analogRead(A2); Yvals[count]=analogRead(A1);" if xy==1 else "")+\
+      "Zvals[count]=analogRead(A0); tvals[count]=micros(); t_last=tvals[count]; count = count+1; }}"+\
+      "for (int i=0; i<%i; i++){"%(Nt)+\
             ("Serial.println(Xvals[i]); Serial.println(Yvals[i]);" if xy==1 else "")+\
-            "Serial.println(Zvals[i]); Serial.println(tvals[i]); } count=0;} delay(%f);}"%(delay)
+            "Serial.println(Zvals[i]); Serial.println((tvals[i]-tvals[0])); } }}}"
     file=open(data+"/"+filebase+"/"+filebase+".ino","w")
     file.write(program)
     file.close()
+
+    print(sys.platform)
+    #Use the newer arduino-cli, and check if the -p port is necessary
+    subprocess.run(["./arduino-cli-mac", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+    if(run==1):
+        subprocess.run(["./arduino-cli-mac", "upload", "-p", "/dev/cu.usbmodem14101", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+        print(*["./arduino-cli-mac", "upload", "-p", "/dev/cu.usbmodem14101", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+
 
 #Fitting sinusoidal function
 def sinfunc(t, A, f, p, c):  return A * np.sin(2*np.pi*f*t + p) + c
@@ -44,43 +56,36 @@ def get_sample():
     zlst=[]
     tlst=[]
     if run==1:
-        print(sys.platform)
-        if sys.platform == "linux" or sys.platform == "linux2":
-            print(*["./arduino-cli-linux", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
-            compile=subprocess.run(["./arduino-cli-linux", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
-            subprocess.run(["./arduino-cli-linux", "upload", "-p", "/dev/tty0", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
-            ser = serial.Serial('/dev/tty0', 115200)
-        elif sys.platform == "darwin":
-            subprocess.run(["./arduino-cli-mac", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
-            subprocess.run(["./arduino-cli-mac", "upload", "-p", "/dev/cu.usbserial-DN05KUXR", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
-            print(*["./arduino-cli-mac", "upload", "-p", "/dev/cu.usbserial-DN05KUXR", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
-            ser = serial.Serial('/dev/cu.usbserial-DN05KUXR', 115200)
-        elif sys.platform == "win32":
-            subprocess.run(["./arduino-cli-windows.exe", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
-            subprocess.run(["./arduino-cli-windows.exe", "upload", "-p", "COM3", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
-            ser = serial.Serial('COM3', 115200)
         print('Reading serial port')
-        ser.write(33)
-        sleep(0.1)
+        ser = serial.Serial(port='/dev/cu.usbmodem14101', baudrate=115200)
         ser.flushInput()
         ser.flushOutput()
-        sleep(0.1)
-        ser.write(34)
+
+        ser.write(bytes("1\n", 'utf-8')) #I can send Nt and delay here.
+        ser.write(bytes("1\n", 'utf-8')) #I can send Nt and delay here.
+        # sleep(0.1)
         t=0
-        print(Nt)
+
         for i in range(Nt):
-            print(i,end='  \r')
+            print(i,end='   \r')
             if(xy==1):
                 xlst.append(int(ser.readline().decode("utf-8")))
                 ylst.append(int(ser.readline().decode("utf-8")))
             zlst.append(int(ser.readline().decode("utf-8")))
             tlst.append(0.001*int(ser.readline().decode("utf-8")))
+
+        #This will depend on the accelerometer
         amax=5
         amin=-5
-        zlst=amin+(amax-amin)/(3.3/5.0*1024)*np.array(zlst)
+        vscale=5
+
+
+        zlst=amin+(amax-amin)/(3.3/vscale*1024)*np.array(zlst)
         if(xy==1):
-            xlst=amin+(amax-amin)/(3.3/5.0*1024)*np.array(xlst)
-            ylst=amin+(amax-amin)/(3.3/5.0*1024)*np.array(ylst)
+            xlst=amin+(amax-amin)/(3.3/vscale*1024)*np.array(xlst)
+            ylst=amin+(amax-amin)/(3.3/vscale*1024)*np.array(ylst)
+
+
 
     else:
         if(xy==1):
@@ -92,7 +97,7 @@ def get_sample():
     if(xy==1):
         xlst=np.array(xlst)
         ylst=np.array(ylst)
-    tlst=np.array(tlst)
+    tlst=np.array(tlst)/1000
     zlst=np.array(zlst)
     #
     # if args.freq >0:
@@ -115,7 +120,7 @@ def get_sample():
     popt, pcov = curve_fit(sinfunc, tlst, zlst, p0=[acc0,freq0,phi0,cz])
     acc, freq, phi, c = popt
     dacc, dfreq, dphi, dc = np.sqrt(np.diag(pcov))
-    print("[acc0,freq0,phi0,cx,cy,cz]=",[acc0,freq0,phi0,cx,cy,cz])
+    # print("[acc0,freq0,phi0,cx,cy,cz]=",[acc0,freq0,phi0,cx,cy,cz])
     print("[acc,freq,phi,c]=",popt)
     print()
     return xlst,ylst,zlst,tlst,acc,freq,phi,c,cx,cy
@@ -141,7 +146,7 @@ def plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c):
         plt.plot(tlst,xlst,'bx',markersize=2.0)
         plt.subplot(234,xlabel="Time (s)",ylabel="Acceleration (g)",title="Y acceleration",ylim=(-0.5,0.5))
         plt.plot(tlst,ylst,'bx',markersize=2.0)
-    plt.subplot(231,xlabel="Time (s)",ylabel="Acceleration (g)",title="Z acceleration",ylim=(-4,4))
+    plt.subplot(231,xlabel="Time (s)",ylabel="Acceleration (g)",title="Z acceleration",ylim=(-1,3))
     plt.plot(tlst,np.array([sinfunc(t,acc,freq,phi,c) for t in tlst]),'r')
     plt.plot(tlst,zlst,'bx',markersize=2.0)
     plt.subplot(232,xlabel="Time (s)",ylabel="Acceleration (g)",title="Z residual")
@@ -206,6 +211,8 @@ while True:
         save_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,cz,cx,cy)
         count=count+1
     elif input == 'p\n':
+        plt.close()
+        plt.subplots(2,3,figsize=(10,5))
         plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,cz)
     elif input == 'P\n':
         plot_sweep()
@@ -220,12 +227,13 @@ while True:
         try:
             if line == 'a\n':
                 delay = 10*1e3/freq/Nt #10 cycles in sample
+                print(delay)
             else:
                 delay=float(line)
         except:
             print("Bad input %s"%(line))
-        if delay < 2.0:
-            delay = 2.0
+        # if delay < 2.0:
+        #     delay = 2.0
         print("Delay set to %f"%(delay))
         initialize()
     elif input == 'q\n':
@@ -234,4 +242,3 @@ while True:
         continue
     else:
         print("Unrecognized input '%s' Try again"%(input))
-        
