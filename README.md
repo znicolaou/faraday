@@ -1,8 +1,10 @@
 # Files in the faraday repository
-The file faraday.py is a python script to integrate the equations of motion for inviscid Faraday waves in inhomogeneous domains with the finite element method. The files pendula.nb and plotfaraday.nb are Mathematica notebooks to plot results from simulations. The file accel.py is a python script for controlling an Arduino to collect data from an accelerometer in Faraday wave experiments.  The arduino-cli files are command line interfaces for controlling the Arduino. The folders contain data files from experiments and simulation output.
+The file faraday.py is a python script to integrate the equations of motion for inviscid Faraday waves in inhomogeneous domains with the finite element method. The files pendula.nb and plotfaraday.nb are Mathematica notebooks to plot results from simulations. The file accel.py is a python script for controlling an Arduino to collect data from an accelerometer in Faraday wave experiments.  The folders contain data files from experiments and simulation output.
 
 # System requirements
 The python code has been run with anaconda 3.8, which can be downloaded here: https://www.anaconda.com/distribution/. The scripts require packages numpy, scipy, matplotlib, pyserial, fenics, and mshr, Create a new anaconda environment and install from the default channels with `conda create -n faraday_env numpy scipy matplotlib pyserial`.   Activate the environment with `conda activate faraday_env`, then install fenics and mshr from the conda-forge channel with `conda install -c conda-forge fenics mshr`.  NB the matplotlib package from the conda-forge channel has not worked well on mac systems.
+
+The accelerometer script uses the arduino command line interface, which can be installed following the instructions here: https://arduino.github.io/arduino-cli/dev/installation/. It is written for an Arduino Uno, and the serial port must be set correctly for communication: https://support.arduino.cc/hc/en-us/articles/4406856349970-Find-the-port-your-board-is-connected-to.
 
 # Usage
 Running the script `./faraday.py -h` will produce the following usage message:
@@ -78,21 +80,25 @@ optional arguments:
 Running the script `./accel.py -h` will produce the following usage message:  
 
 ```
-usage: accel.py [-h] --filebase FILEBASE [--directory DATA] [--Nt NT]  
-                [--delay DELAY] [--xy {0,1}] [--run {0,1}] [--count COUNT]  
+usage: accel.py [-h] --filebase FILEBASE [--directory DATA] [--Nt NT]
+                [--delay DELAY] [--xy {0,1}] [--run {0,1}] [--count COUNT]
+                [--port /DEV/CU.USBMODEM14101]
 
-Upload an Arduino sketch and read output from the accelerometer.  
+Upload an Arduino sketch and read output from the accelerometer.
 
-optional arguments:  
-  -h, --help           show this help message and exit  
-  --filebase FILEBASE  Base string for file output.  
-  --directory DATA     Directory to save files. Default "data".  
-  --Nt NT              Number of buffer ints. Default 150.  
-  --delay DELAY        Delay between samples. Default 2.0.  
-  --xy {0,1}           Flag for x and y output. Default 1.  
-  --run {0,1}          Flag for running arduino and reading output; if 0, data  
-                       is read from previous runs if files exist. Default 1.  
-  --count COUNT        Initial count. Default 0.  
+optional arguments:
+  -h, --help            show this help message and exit
+  --filebase FILEBASE   Base string for file output.
+  --directory DATA      Directory to save files. Default "data".
+  --Nt NT               Number of buffer ints. Default 150.
+  --delay DELAY         Delay between samples. Default 2.0.
+  --xy {0,1}            Flag for x and y output. Default 1.
+  --run {0,1}           Flag for running arduino and reading output; if 0,
+                        data is read from previous runs if files exist.
+                        Default 1.
+  --count COUNT         Initial count. Default 0.
+  --port /DEV/CU.USBMODEM14101
+                        Arduino port.
   ```
 
 # Input files
