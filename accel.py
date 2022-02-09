@@ -20,54 +20,59 @@ def initialize():
     file=open((data+"/"+filebase+"/"+filebase+".out"),"w")
     print(*sys.argv, file=file)
     file.close()
-    #Add a
-    program="void setup(){Serial.begin(115200);Serial.setTimeout(1);}\nvoid loop(){"+\
-    "if(!Serial.available()){"+\
-    "Serial.readString(); unsigned long t_last; int count = 0;"+\
+
+    program="void setup(){Serial.begin(115200);Serial.setTimeout(1);}\nvoid loop(){}\n void serialEvent(){\n"+\
+    "{\n"+\
+    "Serial.read(); unsigned long t_last; int count = 0;\n"+\
     (("unsigned short Xvals[%i]; unsigned short Yvals[%i];"%(Nt,Nt)) if xy==1 else "")+\
     ("unsigned short Zvals[%i];\n"%(Nt))+\
     ("unsigned long tvals[%i];\n"%(Nt))+\
-    "{ count=0; Zvals[count]=analogRead(A0); t_last=micros(); while(count<%i) {"%(Nt)+\
-    "if(micros()-t_last > 1000*%f) {" %(delay)+\
-      ("Xvals[count]=analogRead(A2); Yvals[count]=analogRead(A1);" if xy==1 else "")+\
-      "Zvals[count]=analogRead(A0); tvals[count]=micros(); t_last=tvals[count]; count = count+1; }}"+\
-      "for (int i=0; i<%i; i++){"%(Nt)+\
-            ("Serial.println(Xvals[i]); Serial.println(Yvals[i]);" if xy==1 else "")+\
-            "Serial.println(Zvals[i]); Serial.println((tvals[i]-tvals[0])); } }}}"
+    "{ count=0; Zvals[count]=analogRead(A0); t_last=micros(); \n while(count<%i) {\n"%(Nt)+\
+    "if(micros()-t_last > 1000*%f) {\n" %(delay)+\
+      ("Xvals[count]=analogRead(A2); Yvals[count]=analogRead(A1);\n" if xy==1 else "")+\
+      "Zvals[count]=analogRead(A0); tvals[count]=micros();\n t_last=tvals[count]; count = count+1; \n}"+\
+      "\n}"+\
+      "\nfor (int i=0; i<%i; i++){\n"%(Nt)+\
+            ("Serial.println(Xvals[i]);\n Serial.println(Yvals[i]);\n" if xy==1 else "")+\
+            "Serial.println(Zvals[i]);\n Serial.println((tvals[i]-tvals[0])); \n"+\
+            "}\n"+\
+            "}\n"+\
+            "}\n"+\
+            "}"
     file=open(data+"/"+filebase+"/"+filebase+".ino","w")
     file.write(program)
     file.close()
 
     print(sys.platform)
     #Use the newer arduino-cli, and check if the -p port is necessary
-    subprocess.run(["./arduino-cli-mac", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+    subprocess.run(["arduino-cli", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
     if(run==1):
-        subprocess.run(["./arduino-cli-mac", "upload", "-p", "/dev/cu.usbmodem14101", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
-        print(*["./arduino-cli-mac", "upload", "-p", "/dev/cu.usbmodem14101", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+        subprocess.run(["arduino-cli", "upload", "-p", "/dev/cu.usbmodem14101", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+        print(*["arduino-cli", "upload", "-p", "/dev/cu.usbmodem14101", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+
+    ser = serial.Serial(port='/dev/cu.usbmodem14101', baudrate=115200)
+    sleep(1)
+    return ser
 
 
 #Fitting sinusoidal function
 def sinfunc(t, A, f, p, c):  return A * np.sin(2*np.pi*f*t + p) + c
 
 #Send the sketch to the Arduino and read the serial port to retrieve Nt data points
-def get_sample():
+def get_sample(ser):
     xlst=[]
     ylst=[]
     zlst=[]
     tlst=[]
     if run==1:
         print('Reading serial port')
-        ser = serial.Serial(port='/dev/cu.usbmodem14101', baudrate=115200)
-        ser.flushInput()
-        ser.flushOutput()
-
-        ser.write(bytes("1\n", 'utf-8')) #I can send Nt and delay here.
-        ser.write(bytes("1\n", 'utf-8')) #I can send Nt and delay here.
-        # sleep(0.1)
+        ser.write(bytes('1', 'utf-8'))
+        sleep(1)
         t=0
-
+        if ser.in_waiting==0:
+            raise Exception("Nothing to read!")
         for i in range(Nt):
-            print(i,end='   \r')
+            print(ser.in_waiting, end='    \r')
             if(xy==1):
                 xlst.append(int(ser.readline().decode("utf-8")))
                 ylst.append(int(ser.readline().decode("utf-8")))
@@ -99,10 +104,6 @@ def get_sample():
         ylst=np.array(ylst)
     tlst=np.array(tlst)/1000
     zlst=np.array(zlst)
-    #
-    # if args.freq >0:
-    #     freq0=args.freq
-    # else:
     freq0=(1+np.argmax(np.abs(np.fft.rfft(zlst))[1:]))/tlst[-1]
 
     acc0=0.5*(np.max(zlst)-np.min(zlst))
@@ -120,7 +121,7 @@ def get_sample():
     popt, pcov = curve_fit(sinfunc, tlst, zlst, p0=[acc0,freq0,phi0,cz])
     acc, freq, phi, c = popt
     dacc, dfreq, dphi, dc = np.sqrt(np.diag(pcov))
-    # print("[acc0,freq0,phi0,cx,cy,cz]=",[acc0,freq0,phi0,cx,cy,cz])
+
     print("[acc,freq,phi,c]=",popt)
     print()
     return xlst,ylst,zlst,tlst,acc,freq,phi,c,cx,cy
@@ -198,10 +199,10 @@ if not os.path.isdir(data+"/"+filebase):
     os.mkdir(data+"/"+filebase)
 
 #Main loop
-initialize()
-
+ser=initialize()
+sleep(1)
 try:
-    xlst,ylst,zlst,tlst,acc,freq,phi,cz,cx,cy=get_sample()
+    xlst,ylst,zlst,tlst,acc,freq,phi,cz,cx,cy=get_sample(ser)
 except:
     print("Failed to get sample or fit data! Is Arduino busy?")
 while True:
@@ -218,23 +219,24 @@ while True:
         plot_sweep()
     elif input == 'r\n':
         try:
-            xlst,ylst,zlst,tlst,acc,freq,phi,cz,cx,cy=get_sample()
-        except:
-            print("Fit failed!")
+            xlst,ylst,zlst,tlst,acc,freq,phi,cz,cx,cy=get_sample(ser)
+        except Exception as e:
+            print("Fit failed!", e)
     elif input=='d\n':
-        print("Enter delay in ms (greater than 2.0), or 'a' for automatic based on last frequency:")
+        print("Enter delay in ms, or 'a' for automatic based on last frequency. Minimum is 0.3.")
         line=sys.stdin.readline()
         try:
             if line == 'a\n':
                 delay = 10*1e3/freq/Nt #10 cycles in sample
-                print(delay)
             else:
                 delay=float(line)
         except:
             print("Bad input %s"%(line))
-        # if delay < 2.0:
-        #     delay = 2.0
-        print("Delay set to %f"%(delay))
+
+        delay=delay-0.3
+        if delay<0:
+            delay=0
+        print("Delay set to %f"%(delay+0.3))
         initialize()
     elif input == 'q\n':
         break
