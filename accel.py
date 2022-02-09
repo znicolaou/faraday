@@ -47,10 +47,10 @@ def initialize():
     #Use the newer arduino-cli, and check if the -p port is necessary
     subprocess.run(["arduino-cli", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
     if(run==1):
-        subprocess.run(["arduino-cli", "upload", "-p", "/dev/cu.usbmodem14101", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
-        print(*["arduino-cli", "upload", "-p", "/dev/cu.usbmodem14101", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+        subprocess.run(["arduino-cli", "upload", "-p", port, "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+        print(*["arduino-cli", "upload", "-p", port, "--fqbn", "arduino:avr:uno", data+"/"+filebase])
 
-    ser = serial.Serial(port='/dev/cu.usbmodem14101', baudrate=115200)
+    ser = serial.Serial(port=port, baudrate=115200)
     sleep(1)
     return ser
 
@@ -183,9 +183,11 @@ parser.add_argument("--xy", type=int, choices=[0,1], required=False, default=1, 
 # parser.add_argument("--freq", type=float, required=False, default=0, dest='freq', help='Frequency for fitting')
 parser.add_argument("--run", type=int, choices=[0,1], required=False, default=1, dest='run', help='Flag for running arduino and reading output; if 0, data is read from previous runs if files exist. Default 1.')
 parser.add_argument("--count", type=int, required=False, default=0, dest='count', help='Initial count. Default 0.')
+parser.add_argument("--port", type=str, required=False, default=0, dest='/dev/cu.usbmodem14101', help='Arduino port.')
 
 args = parser.parse_args()
 filebase=args.filebase
+port=args.port
 data=args.data
 Nt=args.Nt
 delay=args.delay
