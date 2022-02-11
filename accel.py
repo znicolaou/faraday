@@ -183,7 +183,7 @@ parser.add_argument("--xy", type=int, choices=[0,1], required=False, default=1, 
 # parser.add_argument("--freq", type=float, required=False, default=0, dest='freq', help='Frequency for fitting')
 parser.add_argument("--run", type=int, choices=[0,1], required=False, default=1, dest='run', help='Flag for running arduino and reading output; if 0, data is read from previous runs if files exist. Default 1.')
 parser.add_argument("--count", type=int, required=False, default=0, dest='count', help='Initial count. Default 0.')
-parser.add_argument("--port", type=str, required=False, default=0, dest='/dev/cu.usbmodem14101', help='Arduino port.')
+parser.add_argument("--port", type=str, required=False, default='/dev/cu.usbmodem14101', dest='port', help='Arduino port.')
 
 args = parser.parse_args()
 filebase=args.filebase
@@ -224,6 +224,9 @@ while True:
             xlst,ylst,zlst,tlst,acc,freq,phi,cz,cx,cy=get_sample(ser)
         except Exception as e:
             print("Fit failed!", e)
+            print("Re-opening serial port. Try again.")
+            ser = serial.Serial(port=port, baudrate=115200)
+            sleep(1)
     elif input=='d\n':
         print("Enter delay in ms, or 'a' for automatic based on last frequency. Minimum is 0.3.")
         line=sys.stdin.readline()
