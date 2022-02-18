@@ -183,7 +183,7 @@ parser.add_argument("--xy", type=int, choices=[0,1], required=False, default=1, 
 # parser.add_argument("--freq", type=float, required=False, default=0, dest='freq', help='Frequency for fitting')
 parser.add_argument("--run", type=int, choices=[0,1], required=False, default=1, dest='run', help='Flag for running arduino and reading output; if 0, data is read from previous runs if files exist. Default 1.')
 parser.add_argument("--count", type=int, required=False, default=0, dest='count', help='Initial count. Default 0.')
-parser.add_argument("--port", type=str, required=False, default='/dev/cu.usbmodem14101', dest='port', help='Arduino port.')
+parser.add_argument("--port", type=str, required=False, default=None, dest='port', help='Arduino port.')
 
 args = parser.parse_args()
 filebase=args.filebase
@@ -194,6 +194,19 @@ delay=args.delay
 xy=args.xy
 run=args.run
 count=args.count
+
+if port is None:
+    boards=subprocess.run(["arduino-cli", "board", "list"],capture_output=True).stdout.split(b'\n')
+    for i in range(1,len(boards)):
+        line=boards[i].decode().split()
+        if len(line)>=3 and line[2] != "Unknown":
+            port=line[0]
+            print("using port",port)
+
+if port is None and run==1:
+    print("No arduino found")
+    exit(0)
+
 
 if not os.path.isdir(data+"/"+filebase):
     if not os.path.isdir(data):
