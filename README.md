@@ -4,7 +4,7 @@ The file faraday.py is a python script to integrate the equations of motion for 
 # System requirements
 The python code has been run with anaconda 3.8, which can be downloaded here: https://www.anaconda.com/distribution/. The scripts require packages numpy, scipy, matplotlib, pyserial, fenics, and mshr, Create a new anaconda environment and install from the default channels with `conda create -n faraday_env numpy scipy matplotlib pyserial`.   Activate the environment with `conda activate faraday_env`, then install fenics and mshr from the conda-forge channel with `conda install -c conda-forge fenics mshr`.  NB the matplotlib package from the conda-forge channel has not worked well on mac systems.
 
-The accelerometer script uses the arduino command line interface, which can be installed following the instructions here: https://arduino.github.io/arduino-cli/dev/installation/. It is written for an Arduino Uno, and the serial port must be set correctly for communication: https://support.arduino.cc/hc/en-us/articles/4406856349970-Find-the-port-your-board-is-connected-to.
+The accelerometer script uses the arduino command line interface, which can be installed following the instructions here: https://arduino.github.io/arduino-cli/dev/installation/. It is written for an Arduino Uno; for initial configuration, see: https://create.arduino.cc/projecthub/B45i/getting-started-with-arduino-cli-7652a5.
 
 # Usage
 Running the script `./faraday.py -h` will produce the following usage message:
