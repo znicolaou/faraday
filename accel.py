@@ -85,7 +85,7 @@ def get_sample(ser):
         vscale=5
 
 
-        zlst=amin+(amax-amin)/(3.3/vscale*1024)*np.array(zlst)
+        zlst=-(amin+(amax-amin)/(3.3/vscale*1024)*np.array(zlst))
         if(xy==1):
             xlst=amin+(amax-amin)/(3.3/vscale*1024)*np.array(xlst)
             ylst=amin+(amax-amin)/(3.3/vscale*1024)*np.array(ylst)
