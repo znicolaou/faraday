@@ -1,0 +1,62 @@
+\documentclass[aps,pre,amsmath,amssymb,floatfix,onecolumn,notitlepage,10pt]{revtex4-1}
+\usepackage{graphicx,isomath}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue,pdfborderstyle={/S/U/W 1}]{hyperref}
+
+\begin{document}
+
+\title{Wave dispersion in viscid Faraday waves with periodic heterogeneity}
+\author{Zachary G. Nicolaou}
+\date{\today}
+
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+
+\section{Viscid fluids with periodic heterogeneity}
+The Navier-Stokes equations govern the fluid motion,
+\begin{align}
+\rho \left(\frac{\partial \mathbf{u}}{\partial t} + (\mathbf{u}.\bm{\nabla})\mathbf{u}\right) - \mu \nabla^2 \mathbf{u} = -\bm{\nabla}P + \rho \mathbf{g}, \label{ns}
+\end{align}
+and we assume the fluid is incompressible,
+\begin{align}
+\bm{\nabla} \cdot \mathbf{u} = 0. \label{incompressible}
+\end{align}
+Rotational symmetry is broken by the gravitational body force, which is assumed to be oriented in the vertical direction $\hat{\mathbf{z}}$. Furthermore, we take an accelerated frame of reference that moves with the vertical vibration of the container, which implies a periodic body force $\mathbf{g} = \hat{\mathbf{z}}(g + a_d\cos(\omega_d t))$, where $a_d$ is the driving acceleration and $\omega_d$ is the driving frequency.
+
+There are no-slip and no-penetration boundary conditions on the fluid-solid interface, which occurs at $z=h_s(x,y)$.
+\begin{equation}
+\left. \mathbf{u} \right\rvert_{z=h_s} = \mathbf{0}. \label{noslip}
+\end{equation}
+The fluid-air interface is a free surface, occuring at $z=h_0 + H(x,y)$, where $h_0$ is the unperturbed fluid depth. The motion of the fluid surface is governed by a kinematic boundary condition
+\begin{equation}
+\left. \frac{\partial h}{\partial t} + u \frac{\partial h}{\partial x} + v\frac{\partial h}{\partial y} - w \right\rvert_{z=h_0+H} = 0. \label{kinematic}
+\end{equation}
+Finally the normal and tangential stress-balance conditions at the free interface ensure conservation of momentum
+\begin{align}
+\left. P - 2\mu \hat{\mathbf{n}} \cdot E \cdot \hat{\mathbf{n}} - \sigma \bm{\nabla}_s \cdot \hat{\mathbf{n}}  \right\rvert_{z=h_0+H} &= 0 \label{normalstress} \\
+\left. 2\mu\hat{\mathbf{n}}\cdot E \cdot \hat{\mathbf{t}}_x  \right\rvert_{z=h_0+H} = 0  \label{tangentialstress1} \\
+\left. 2\mu\hat{\mathbf{n}}\cdot E \cdot \hat{\mathbf{t}}_y  \right\rvert_{z=h_0+H}  = 0, \label{tangentialstress2}
+\end{align}
+where $\hat{\mathbf{n}}$ %= \frac{\hat{\mathbf{z}} - \hat{\mathbf{x}}\frac{\partial h}{\partial x} - \hat{\mathbf{y}}\frac{\partial h}{\partial y}}{\sqrt{1+(\frac{\partial h}{\partial x})^2+(\frac{\partial h}{\partial y})^2}}$
+is the outward-pointing normal vector to the free surface, $\mathbf{t}_x$ and $\mathbf{t}_y$ are the tangential surface directions, $\sigma$ is the surface tension, $\bm{\nabla}_s$ is the surface gradient operator, and $E$ is symmetric the rate of strain tensor, with Cartesian component $E_{ij} = \frac{1}{2}\left(\frac{\partial u_{i}}{\partial x_j} + \frac{\partial u_{j}}{\partial x_i}\right)$.
+
+We seek to study the linear stability of the motionless base state $\mathbf{u}_0 = \mathbf{0}$, $P_0 = \rho(g+a_d\cos(\omega_d t))z$, $H_0=0$. Let $\mathbf{u} = \mathbf{u}_0 + \bar{\mathbf{u}}$, $P=P_0+\bar{P}$, and $H=H_0+\bar{H}$, where $\bar{\mathbf{u}} = (u,v,w)$, $\bar{P}$, and $\bar{H}$ are small.  We assume that the solid interface $h_s(x, y)$ is periodic with respect to two translations $x\to x+r^i_x$ and $y\to y+r^i_y$. Given the periodicity in space and time, we know that the linearized operator that we seek will commute with the discrete space and time translation operations. This implies that we can seek modal perturbations using a Floquet ansatz
+\begin{align}
+u &= e^{i\mathbf{k}.\mathbf{x} + s t}\sum_{lmn} u_{lmn} e^{i(m\mathbf{k}_1\cdot \mathbf{x} + n\mathbf{k}_2\cdot \mathbf{x} + l\omega_d t)}, \\
+v &= e^{i\mathbf{k}.\mathbf{x} + s t}\sum_{lmn} v_{lmn} e^{i(m\mathbf{k}_1\cdot \mathbf{x} + n\mathbf{k}_2\cdot \mathbf{x} + l\omega_d t)}, \\
+w &= e^{i\mathbf{k}.\mathbf{x} + s t}\sum_{lmn} w_{lmn} e^{i(m\mathbf{k}_1\cdot \mathbf{x} + n\mathbf{k}_2\cdot \mathbf{x} + l\omega_d t)}, \\
+\bar{P} &= e^{i\mathbf{k}.\mathbf{x} + s t}\sum_{lmn} P_{lmn} e^{i(m\mathbf{k}_1\cdot \mathbf{x} + n\mathbf{k}_2\cdot \mathbf{x} + l\omega_d t)}, \\
+\bar{H} &= e^{i\mathbf{k}.\mathbf{x} + s t}\sum_{lmn} H_{lmn} e^{i(m\mathbf{k}_1\cdot \mathbf{x} + n\mathbf{k}_2\cdot \mathbf{x} + l\omega_d t)}, \\
+\end{align}
+where the reciprocal lattice vectors $\mathbf{k}_i$ are defined as the dual basis to the discrete translational vectors $\mathbf{r}_j \cdot \mathbf{k}_i = 2\pi\delta_{ij}$. We seek to determine the relationship between the wavevector $\mathbf{k}$ and the Floquet exponent $s$, which we refer to as the dispersion relation.
+
+
+\section{Nonlinear eigenvalue algorithms}
+
+
+\begin{thebibliography}{99}
+\bibitem{2021_Nicolaou_1} Z. G. Nicolaou, D. J. Case, E. B. Van der Wee, M. M. Driscoll, and A. E. Motter. Heterogeneity-stabilized homogeneous states in driven media. \textit{Nature communications} \textbf{12}, 4486 (2021).
+\bibitem{2021_Nicolaou_2} Z. G. Nicolaou and A. E. Motter. Anharmonic classical time crystals: A coresonance pattern formation mechanism. \textit{Physical Review Research} \textbf{3}, 023106 (2021).
+\end{thebibliography}
+\end{document}

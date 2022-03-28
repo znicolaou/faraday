@@ -1,0 +1,8 @@
+\contentsline {title}{Wave dispersion in viscid Faraday waves with periodic heterogeneity}{1}{section*.1}%
+\tocdepth@munge 
+\contentsline {section}{\numberline {}Contents}{1}{section*.2}%
+\tocdepth@restore 
+\contentsline {section}{\numberline {I}Introduction}{1}{section*.3}%
+\contentsline {section}{\numberline {II}Viscid fluids with periodic heterogeneity}{1}{section*.4}%
+\contentsline {section}{\numberline {III}Nonlinear eigenvalue algorithms}{2}{section*.5}%
+\contentsline {section}{\numberline {}References}{2}{section*.6}%
