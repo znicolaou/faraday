@@ -21,22 +21,22 @@ The incompressible Navier-Stokes equations govern the fluid motion,
 \end{align}
 Rotational symmetry is broken by the gravitational body force, which is assumed to be oriented in the vertical direction $\hat{\mathbf{z}}$. Accordingly, we separate the lateral coordinates into a vector $\mathbf{x}=(x,y)$ and integrate out the $z$ dependence in the following. Furthermore, we take an accelerated frame of reference that moves with the vertical vibration of the container, which implies a periodic body force $\rho \mathbf{g} = \hat{\mathbf{z}}\rho (g + a_d\cos(\omega_d t))$, where $g$ is the gravitational acceleration, $a_d$ is the driving acceleration, and $\omega_d$ is the driving frequency.
 
-There are no-slip and no-penetration boundary conditions on the fluid-solid interface, which occurs at $z=h_s(\mathbf{x})$.
-\begin{equation}
-\left. \mathbf{u} \right\rvert_{z=h_s} = \mathbf{0}. \label{noslip}
-\end{equation}
 The fluid-air interface is a free surface, occuring at $z=h_0 + H(\mathbf{x})$, where $h_0$ is the unperturbed fluid depth. The motion of the fluid surface is governed by a kinematic boundary condition
 \begin{equation}
 \left. \frac{\partial h}{\partial t} + \mathbf{u}\cdot\nabla h - \mathbf{u}\cdot\hat{\mathbf{z}} \right\rvert_{z=h_0+H} = 0. \label{kinematic}
 \end{equation}
-Finally the tangential and normal  stress-balance conditions at the free interface ensure conservation of momentum
+The tangential and normal  stress-balance conditions at the free interface ensure conservation of momentum
 \begin{align}
 \left. 2\mu\hat{\mathbf{n}}\cdot E \cdot \hat{\mathbf{t}}_x  \right\rvert_{z=h_0+H} = 0,  \label{tangentialstress1} \\
 \left. 2\mu\hat{\mathbf{n}}\cdot E \cdot \hat{\mathbf{t}}_y  \right\rvert_{z=h_0+H}  = 0, \label{tangentialstress2} \\
-\left. P - 2\mu \hat{\mathbf{n}} \cdot E \cdot \hat{\mathbf{n}} - \sigma \bm{\nabla}_s \cdot \hat{\mathbf{n}}  \right\rvert_{z=h_0+H} &= 0m, \label{normalstress} 
+\left. P - 2\mu \hat{\mathbf{n}} \cdot E \cdot \hat{\mathbf{n}} - \sigma \bm{\nabla}_s \cdot \hat{\mathbf{n}}  \right\rvert_{z=h_0+H} &= 0m, \label{normalstress}
 \end{align}
 where $\hat{\mathbf{n}}$ %= \frac{\hat{\mathbf{z}} - \hat{\mathbf{x}}\frac{\partial h}{\partial x} - \hat{\mathbf{y}}\frac{\partial h}{\partial y}}{\sqrt{1+(\frac{\partial h}{\partial x})^2+(\frac{\partial h}{\partial y})^2}}$
 is the outward-pointing normal vector to the free surface, $\mathbf{t}_x$ and $\mathbf{t}_y$ are the tangential surface directions, $\sigma$ is the surface tension, $\bm{\nabla}_s$ is the surface gradient operator, and $E$ is symmetric the rate of strain tensor, with Cartesian component $E_{ij} = \frac{1}{2}\left(\frac{\partial u_{i}}{\partial x_j} + \frac{\partial u_{j}}{\partial x_i}\right)$.
+Finally, there are no-slip and no-penetration boundary conditions on the fluid-solid interface, which occurs at $z=h_s(\mathbf{x})$,
+\begin{equation}
+\left. \mathbf{u} \right\rvert_{z=h_s} = \mathbf{0}. \label{noslip}
+\end{equation}
 
 We seek to study the linear stability of the motionless base state $\mathbf{u}_0 = \mathbf{0}$, $P_0 = \rho(g+a_d\cos(\omega_d t))z$, $H_0=0$. Let $\mathbf{u} = \mathbf{u}_0 + \bar{\mathbf{u}}$, $P=P_0+\bar{P}$, and $H=H_0+\bar{H}$, where $\bar{\mathbf{u}} = (u,v,w)$, $\bar{P}$, and $\bar{H}$ are small.  We assume that the solid interface $h_s(\mathbf{x})$ is periodic with respect to two translations, $h_s(\mathbf{x}) = h_s(\mathbf{x}+\mathbf{r}_1)$ and $h_s(\mathbf{x}) = h_s(\mathbf{x}+\mathbf{r}_2)$. Given the periodicity in space and time, we know that the linearized operator that we seek will commute with the discrete space and time translation operations. This implies that we can expand the perturbations into modes using a Floquet ansatz
 \begin{align}
@@ -48,11 +48,11 @@ w &= e^{i\mathbf{k}.\mathbf{x} + i\omega t}\sum_{lmn} w_{lmn}(z) e^{i(m\mathbf{k
 \end{align}
 where the reciprocal lattice vectors $\mathbf{k}_i$ are defined as the dual basis to the discrete translational vectors $\mathbf{r}_j \cdot \mathbf{k}_i = 2\pi\delta_{ij}$. We seek to determine the relationship between the wavevector $\mathbf{k}$ and the (complex) response frequency $\omega$, which we refer to as the dispersion relation. (Note about the periodicity in space and time and the first Brillouin zones).
 
-We now seek to eliminate the $z$ dependence on the Floquet mode amplitudes $u_{lmn}(z)$, $v_{lmn}(z)$, $w_{lmn}(z)$, and $P_{lmn}(z)$. Note first that the advective term $\mathbf{u}\cdot\bm{\nabla}\mathbf{u}$ in Eq.~\eqref{ns} is negligible in the linear regime, since $\mathbf{u}=\bar{\mathbf{u}}$ is small. Then, taking the divergence of Eq.~\eqref{ns} and applying Eq.~\eqref{incompressible}, it follows that 
+We now seek to eliminate the $z$ dependence on the Floquet mode amplitudes $u_{lmn}(z)$, $v_{lmn}(z)$, $w_{lmn}(z)$, and $P_{lmn}(z)$. Note first that the advective term $\mathbf{u}\cdot\bm{\nabla}\mathbf{u}$ in Eq.~\eqref{ns} is negligible in the linear regime, since $\mathbf{u}=\bar{\mathbf{u}}$ is small. Then, taking the divergence of Eq.~\eqref{ns} and applying Eq.~\eqref{incompressible}, it follows that
 \begin{equation}
 \nabla^2 \bar{P}=0.
 \end{equation}
-Inserting Eq.~\eqref{floq4} and projecting onto the modes (by multiplying by $e^{-i\mathbf{k}\cdot x-st-i(m'\mathbf{k}_1\cdot x+n'\mathbf{k}_2\cdot x+l'\omega_d t)}$ and integrating over the two-dimensional spatial unit cell $V$ spanned by $\mathbf{r}_1$ and $\mathbf{r}_2$), it follows that 
+Inserting Eq.~\eqref{floq4} and projecting onto the modes (by multiplying by $e^{-i\mathbf{k}\cdot x-st-i(m'\mathbf{k}_1\cdot x+n'\mathbf{k}_2\cdot x+l'\omega_d t)}$ and integrating over the two-dimensional spatial unit cell $V$ spanned by $\mathbf{r}_1$ and $\mathbf{r}_2$), it follows that
 \begin{equation}
 \frac{\partial^2 P_{lmn}}{\partial z^2} - \left |\bm{\kappa}_{mn}\right|^2 P_{lmn} = 0,
 \end{equation}
@@ -66,7 +66,7 @@ Next, inserting Eq.~\eqref{Psol} back into Eq.~\eqref{ns} and projecting onto th
 \rho\Omega_{lmn} v_{lmn}  - \mu\frac{\partial ^2 v_{lmn}}{\partial z^2} &= -i\bm{\kappa}_{mn}\cdot \hat{y} (A_{lmn}e^{|\bm{\kappa}_{mn}|z} + B_{lmn}e^{-|\bm{\kappa}_{mn}|z}), \\
 \rho\Omega_{lmn} w_{lmn}  - \mu\frac{\partial ^2 w_{lmn}}{\partial z^2} &= -|\bm{\kappa}_{mn}| (A_{lmn}e^{|\bm{\kappa}_{mn}|z} - B_{lmn}e^{-|\bm{\kappa}_{mn}|z}),
 \end{align}
-where $\Omega_{lmn} = i(\omega+l \omega_d) + \frac{\mu}{\rho} |\bm{\kappa}_{mn}|^2$. Thus, 
+where $\Omega_{lmn} = i(\omega+l \omega_d) + \frac{\mu}{\rho} |\bm{\kappa}_{mn}|^2$. Thus,
 \begin{align}
 u_{lmn}(z) &= A^x_{lmn} e^{\sqrt{\rho\Omega_{lmn}/\mu}z} + B^x_{lmn} e^{-\sqrt{\rho\Omega_{lmn}/\mu}z} - \frac{\bm{\kappa}_{mn}\cdot \hat{x}}{\rho(\omega+l\omega_d)}(A_{lmn}e^{|\bm{\kappa}_{mn}|z} + B_{lmn}e^{-|\bm{\kappa}_{mn}|z}), \label{usol} \\
 v_{lmn}(z) &= A^y_{lmn} e^{\sqrt{\rho\Omega_{lmn}/\mu}z} + B^y_{lmn} e^{-\sqrt{\rho\Omega_{lmn}/\mu}z} - \frac{\bm{\kappa}_{mn}\cdot \hat{y}}{\rho(\omega+l\omega_d)}(A_{lmn}e^{|\bm{\kappa}_{mn}|z} + B_{lmn}e^{-|\bm{\kappa}_{mn}|z}), \label{vsol} \\
@@ -99,7 +99,7 @@ A^{klmn}_{4l'm'n'}(\mathbf{k}, \omega)  &=  \Big[e^{\sqrt{\rho\Omega_{lmn}/\mu}h
 Next, we use the the normal stress balance conditions remains for the fifth set of row. The viscous term again follows from the zeroth order $\hat{\mathbf{n}}=\hat{z}$, while the leading order capillary term becomes $\sigma \nabla_s \cdot \hat{\mathbf{n}} = -\sigma \left(\frac{\partial^2 H}{\partial x^2}+\frac{\partial^2 H}{\partial y^2}\right)$. Since the periodic forcing term $a_d \cos(\omega_d t)$ appears in the pressure term, this equation is not diagonal in the $(l,l')$ indices,
 \begin{align}
 A^{klmn}_{5l'm'n'}(\mathbf{k}, \omega) &= \Big[ -\rho (g+\sigma|\bm{\kappa}_{nm}|^2)\delta^k_9 + \left(\rho+\frac{2\mu|\bm{\kappa}_{nm}|^2}{i\rho(\omega+l\omega_d)}\right)\left(e^{|\bm{\kappa}_{nm}|h_0}\delta^k_1 + e^{-|\bm{\kappa}_{nm}|h_0}\delta^k_2 \right) \nonumber \\
-&\quad - 2\mu/\rho\sqrt{\rho\Omega_{lmn}/\mu}\left(e^{\sqrt{\rho\Omega_{lmn}/\mu}h_0}\delta^k_7 - e^{-\sqrt{\rho\Omega_{lmn}/\mu}h_0}\delta^k_8\right)\Big]\delta^{mnl}_{m'n'l'}-\rho a_d \delta^k_9 (\delta^l_{l'+1}+\delta^l_{l'-1})\delta^{mn}_{m'n'}/2. 
+&\quad - 2\mu/\rho\sqrt{\rho\Omega_{lmn}/\mu}\left(e^{\sqrt{\rho\Omega_{lmn}/\mu}h_0}\delta^k_7 - e^{-\sqrt{\rho\Omega_{lmn}/\mu}h_0}\delta^k_8\right)\Big]\delta^{mnl}_{m'n'l'}-\rho a_d \delta^k_9 (\delta^l_{l'+1}+\delta^l_{l'-1})\delta^{mn}_{m'n'}/2.
 \end{align}
 
 We use the kinematic boundary condition Eq.~\eqref{kinematic} for the sixth set of rows, noting that $\mathbf{u}\cdot\nabla h$ can be neglected and projecting onto the modes
@@ -117,7 +117,7 @@ A^{klmn}_{9l'm'n'}(\mathbf{k}, \omega) &= \Big[ \delta^k_{7} I_{n-n'\, m-m'}(\sq
 &\quad + \frac{i|\bm{\kappa}_{mn}|}{\rho(\omega+l\omega_d)}(\delta^k_{1} I_{n-n'\, m-m'}(|\bm{\kappa}_{mn}|a_s/2) - \delta^k_{2} I_{n-n'\, m-m'}(-|\bm{\kappa}_{mn}|a_s/2) \Big]\delta^l_{l'}. \label{lnoslip}
 \end{align}
 
-While Eqs.~\eqref{linear}-\eqref{lnoslip} form a closed linear system, it is helpful to reduce the dimension of the problem by taking advantage of the diagonality of most of the equations over the $(l,m,n)$ indices.  We eliminate all variables except for $\eta_{lmn}=(A_{lmn},B_{lmn},H_{lmn})$ by inverting Eqs.~\eqref{lconstraint1}-\eqref{lkinematic}.
+While Eqs.~\eqref{linear}-\eqref{lnoslip} form a closed linear system, it is helpful to reduce the dimension of the problem by taking advantage of the diagonality of most of the equations over the $(l,m,n)$ indices.  We eliminate all variables except for $\bm{\eta}_{lmn}=(B^x_{lmn},B^y_{lmn},H_{lmn})$ by inverting Eqs.~\eqref{lconstraint1}-\eqref{lkinematic}.
 
 \section{Nonlinear eigenvalue algorithms}
 
