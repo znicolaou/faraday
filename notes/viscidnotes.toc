@@ -4,5 +4,6 @@
 \tocdepth@restore 
 \contentsline {section}{\numberline {I}Introduction}{1}{section*.3}%
 \contentsline {section}{\numberline {II}Viscid fluids with periodic heterogeneity}{1}{section*.4}%
-\contentsline {section}{\numberline {III}Nonlinear eigenvalue algorithms}{4}{section*.5}%
-\contentsline {section}{\numberline {}References}{4}{section*.6}%
+\contentsline {section}{\numberline {III}Inviscid limit}{4}{section*.5}%
+\contentsline {section}{\numberline {IV}Nonlinear eigenvalue algorithms}{5}{section*.6}%
+\contentsline {section}{\numberline {}References}{5}{section*.7}%
