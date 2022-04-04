@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.8.29)  30 MAR 2022 16:58
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.8.29)  3 APR 2022 13:54
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -497,7 +497,7 @@ r (name{equation.2.13}) has been already used, duplicate ignored
                                                   
 l.83 \begin{equation}
                      ] [3] [4]
-<hexagonal.pdf, id=139, 1232.605pt x 325.215pt>
+<hexagonal.pdf, id=143, 1232.605pt x 325.215pt>
 File: hexagonal.pdf Graphic file (type pdf)
 <use hexagonal.pdf>
 Package pdftex.def Info: hexagonal.pdf  used on input line 148.
@@ -506,16 +506,16 @@ Package pdftex.def Info: hexagonal.pdf  used on input line 148.
 No file viscidnotes.bbl.
 [6] (./viscidnotes.aux)
 Package rerunfilecheck Info: File `viscidnotes.out' has not changed.
-(rerunfilecheck)             Checksum: 99CFB048E00838837C92FD6F47CBF75A;1363.
+(rerunfilecheck)             Checksum: C12EFFB45A661FAAA8F395FDFD026C0F;1664.
  ) 
 Here is how much of TeX's memory you used:
- 11020 strings out of 478994
- 157040 string characters out of 5858184
- 500554 words of memory out of 5000000
- 28306 multiletter control sequences out of 15000+600000
+ 11025 strings out of 478994
+ 157097 string characters out of 5858184
+ 500610 words of memory out of 5000000
+ 28309 multiletter control sequences out of 15000+600000
  409443 words of font info for 49 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 82i,12n,88p,1710b,469s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 82i,12n,88p,1710b,381s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmbsy10.pf
 b></usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
@@ -535,10 +535,10 @@ ve/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texliv
 e/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/local/texlive/
 2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/20
 21/texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb>
-Output written on viscidnotes.pdf (6 pages, 859384 bytes).
+Output written on viscidnotes.pdf (6 pages, 862177 bytes).
 PDF statistics:
- 319 PDF objects out of 1000 (max. 8388607)
- 259 compressed objects within 3 object streams
- 54 named destinations out of 1000 (max. 500000)
- 54 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 333 PDF objects out of 1000 (max. 8388607)
+ 273 compressed objects within 3 object streams
+ 56 named destinations out of 1000 (max. 500000)
+ 62 words of extra memory for PDF output out of 10000 (max. 10000000)
 
