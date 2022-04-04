@@ -12,26 +12,26 @@
 %\tableofcontents
 
 \section{Introduction}
-Universal pattern formation in driven and dissipative systems is dictated by wave dispersion and the development of bifurcation instabilities. The period-doubling instability of a fluid surface driven by vertical vibrations, for example, gives rise to the beautiful and fascinating Faraday wave patterns that have been studied for over a century \cite{2021_Nicolaou_1}. While universality in homogeneous systems have been thoroughly characterized, heterogeneous systems exhibit a variety of complex behaviors which are less well understood. The formation of band gaps through periodic heterogeneities, for example, is associated with the emergence of symmetry-broken localized states, leading to novel pattern-forming phenomena and potential technological applications in self-assembled systems. Recently, it was also recognized that band gaps can alter the nature of the bifurcation leading to instabilities in systems driven by vibrations through a coresonance mechanism \cite{2021_Nicolaou_2}. Rather than a single wave mode resonating with the drive to produce a response at half the driving frequency (via a period-doubling bifurcation), a pair of heterogeneity-related modes can respond with a quasiperiodic response that is incommensurate with the driving (via a Neimark-Sacker bifurcation). While coresonance can be designed in a simple system of coupled pendula with relative ease, it is unclear if this phenomena can be achieved in Faraday waves, the paradigmatic pattern-forming system driven by vibration. Here, we hope to design the dispersion and bifurcation structure in Faraday wave systems through a complete Floquet  analysis of the viscid fluid equations.
+Universal pattern formation in driven and dissipative systems is dictated by wave dispersion and the development of bifurcation instabilities. The period-doubling instability of a liquid surface driven by vertical vibrations, for example, gives rise to the beautiful and fascinating Faraday wave patterns that have been studied for over a century \cite{2021_Nicolaou_1}. While universality in homogeneous systems have been thoroughly characterized, heterogeneous systems exhibit a variety of complex behaviors which are less well understood. The formation of band gaps through periodic heterogeneities, for example, is associated with the emergence of symmetry-broken localized states, leading to novel pattern-forming phenomena and potential technological applications in self-assembled systems. Recently, it was also recognized that band gaps can alter the nature of the bifurcation leading to instabilities in systems driven by vibrations through a coresonance mechanism \cite{2021_Nicolaou_2}. Rather than a single wave mode resonating with the drive to produce a response at half the driving frequency (via a period-doubling bifurcation), a pair of heterogeneity-related modes can respond with a quasiperiodic response that is incommensurate with the driving (via a Neimark-Sacker bifurcation). While coresonance can be designed in a simple system of coupled pendula with relative ease, it is unclear if this phenomena can be achieved in Faraday waves, the paradigmatic pattern-forming system driven by vibration. Here, we hope to design the dispersion and bifurcation structure in Faraday wave systems through a complete Floquet  analysis of the viscid fluid equations.
 
 \section{Viscid fluids with periodic heterogeneity}
-We consider the liquid-air interface of a liquid supported on a solid substrate, as depicted in Fig.~\eqref{fig1}.
+We consider the liquid-air interface of a liquid supported on a solid substrate and driven by vertical vibration, as depicted in Fig.~\ref{fig1}.
 \begin{figure}
-\caption{System geometry.}
+\includegraphics[width=0.5\columnwidth]{diagram_driven}
+\caption{System geometry. \label{fig1}}
 \end{figure}
-
-The incompressible Navier-Stokes equations govern the fluid motion,
+The incompressible Navier-Stokes equations govern the liquid motion,
 \begin{align}
 \rho \left(\frac{\partial \mathbf{u}}{\partial t} + (\mathbf{u}.\bm{\nabla})\mathbf{u}\right) - \mu \nabla^2 \mathbf{u} &= -\bm{\nabla}P + \rho \mathbf{g}, \label{ns} \\
-\bm{\nabla} \cdot \mathbf{u} &= 0. \label{incompressible}
+\bm{\nabla} \cdot \mathbf{u} &= 0, \label{incompressible}
 \end{align}
-Rotational symmetry is broken by the gravitational body force, which is assumed to be oriented in the vertical direction $\hat{\mathbf{z}}$. Accordingly, we separate the lateral coordinates into a vector $\mathbf{x}=(x,y)$ and integrate out the $z$ dependence in the following. Furthermore, we take an accelerated frame of reference that moves with the vertical vibration of the container, which implies a periodic body force $\rho \mathbf{g} = \hat{\mathbf{z}}\rho (g + a_d\cos(\omega_d t))$, where $g$ is the gravitational acceleration, $a_d$ is the driving acceleration, and $\omega_d$ is the driving frequency. (Non-sinusoidal periodic driving may also eventually be of interest in order to manipulate the band structure of the response.)
+where $\mathbf{u}$ is the fluid velocity, $P$ is the pressure, $\rho$ is the density, and $\mu$ is the viscosity. Rotational symmetry is broken by the gravitational body force $\rho\mathbf{g}$, which is assumed to be oriented in the vertical direction $\hat{\mathbf{z}}$. Accordingly, we separate the lateral coordinates into a vector $\mathbf{x}=(x,y)$ and integrate out the $z$ dependence in the following. Furthermore, we take an accelerated frame of reference that moves with the vertical vibration of the container, which implies a periodic body force $\rho \mathbf{g} = \hat{\mathbf{z}}\rho (g + a_d\cos(\omega_d t))$, where $g$ is the gravitational acceleration, $a_d$ is the driving acceleration, and $\omega_d$ is the driving frequency. (Non-sinusoidal periodic driving may also eventually be of interest in order to manipulate the band structure of the response.)
 
-The fluid-air interface is a free surface, occurring at $z=h_0 + H(\mathbf{x})$, where $h_0$ is the unperturbed fluid depth. The motion of the fluid surface is governed by a kinematic boundary condition
+The liquid-air interface is a free surface, occurring at $z=h_0 + H(\mathbf{x})$, where $h_0$ is the unperturbed liquid depth. The motion of the liquid surface is governed by a kinematic boundary condition
 \begin{equation}
-\left. \frac{\partial H}{\partial t} + \mathbf{u}\cdot\nabla H - \mathbf{u}\cdot\hat{\mathbf{z}} \right\rvert_{z=h_0+H} = 0. \label{kinematic}
+\left. \frac{\partial H}{\partial t} + \mathbf{u}\cdot\nabla H - \mathbf{u}\cdot\hat{\mathbf{z}} \right\rvert_{z=h_0+H} = 0, \label{kinematic}
 \end{equation}
-The tangential and normal  stress-balance conditions at the free interface ensure conservation of momentum,
+which ensures that the free interface moves with the velocity of the liquid. The tangential and normal  stress-balance conditions at the free interface ensure conservation of momentum,
 \begin{align}
 \left. 2\mu\hat{\mathbf{n}}\cdot E \cdot \hat{\mathbf{t}}_x  \right\rvert_{z=h_0+H} = 0,  \label{tangentialstress1} \\
 \left. 2\mu\hat{\mathbf{n}}\cdot E \cdot \hat{\mathbf{t}}_y  \right\rvert_{z=h_0+H}  = 0, \label{tangentialstress2} \\
@@ -39,7 +39,7 @@ The tangential and normal  stress-balance conditions at the free interface ensur
 \end{align}
 where $\hat{\mathbf{n}}$ %= \frac{\hat{\mathbf{z}} - \hat{\mathbf{x}}\frac{\partial h}{\partial x} - \hat{\mathbf{y}}\frac{\partial h}{\partial y}}{\sqrt{1+(\frac{\partial h}{\partial x})^2+(\frac{\partial h}{\partial y})^2}}$
 is the outward-pointing normal vector to the free surface, $\mathbf{t}_x$ and $\mathbf{t}_y$ are the tangential surface directions, $\sigma$ is the surface tension, $\bm{\nabla}_s$ is the surface gradient operator, and $E$ is symmetric the rate of strain tensor, with Cartesian component $E_{ij} = \frac{1}{2}\left(\frac{\partial u_{i}}{\partial x_j} + \frac{\partial u_{j}}{\partial x_i}\right)$.
-Finally, there are no-slip and no-penetration boundary conditions on the fluid-solid interface, which occurs at $z=h_s(\mathbf{x})$,
+Finally, there are no-slip and no-penetration boundary conditions on the liquid-solid interface, which occurs at $z=h_s(\mathbf{x})$,
 \begin{equation}
 \left. \mathbf{u} \right\rvert_{z=h_s} = \mathbf{0}. \label{noslip}
 \end{equation}
@@ -52,7 +52,9 @@ w &= e^{i\mathbf{k}.\mathbf{x} + i\omega t}\sum_{lmn} w_{lmn}(z) e^{i(m\mathbf{k
 \bar{P} &= e^{i\mathbf{k}.\mathbf{x} + i\omega t}\sum_{lmn} P_{lmn}(z) e^{i(m\mathbf{k}_1\cdot \mathbf{x} + n\mathbf{k}_2\cdot \mathbf{x} + l\omega_d t)}, \label{floq4} \\
 \bar{H} &= e^{i\mathbf{k}.\mathbf{x} + i\omega t}\sum_{lmn} H_{lmn} e^{i(m\mathbf{k}_1\cdot \mathbf{x} + n\mathbf{k}_2\cdot \mathbf{x} + l\omega_d t)},  \label{floq5}
 \end{align}
-where the reciprocal lattice vectors $\mathbf{k}_i$ are defined as the dual basis to the discrete translational vectors $\mathbf{r}_j \cdot \mathbf{k}_i = 2\pi\delta_{ij}$. We aim to determine the relationship between the wavevector $\mathbf{k}$ and the (complex) response frequency $\omega$, which we refer to as the dispersion relation. (Note about the periodicity in wave vectors and frequency and the first Brillouin zones).
+where the reciprocal lattice vectors $\mathbf{k}_i$ are defined as the dual basis to the discrete translational vectors $\mathbf{r}_j \cdot \mathbf{k}_i = 2\pi\delta_{ij}$. We aim to determine the relationship between the wavevector $\mathbf{k}$ and the (complex) response frequency $\omega$, which we refer to as the dispersion relation. 
+
+Note that the periodicity in space and time imposes periodicity on the response frequency and wavevectors as well. In particular, if we add a reciprocal lattice vector to $\mathbf{k}$ or if we add the driving amplitude to $\omega$, we can absorb the contribution into the exponents in Eqs.~\eqref{floq1}-\eqref{floq5} by relabeling the summation indices $(l',m',n')$. This implies that we can restrict our attention to response frequency and wavevectors that lie in the so-called first Brilliouin zones. These are the locus of wavevectors $\mathbf{k}$ closet to the origin in the reciprocal lattice spanned by integer multiples of $(\mathbf{k}_1,\mathbf{k}_2)$ and the response frequency interval $-\omega_d/2 < \mathrm{Re}(\omega) < \omega_d/2$, respectively. 
 
 We now eliminate the $z$ dependence on the Floquet mode amplitudes $u_{lmn}(z)$, $v_{lmn}(z)$, $w_{lmn}(z)$, and $P_{lmn}(z)$. Note first that the advective term $\mathbf{u}\cdot\bm{\nabla}\mathbf{u}$ in Eq.~\eqref{ns} is negligible in the linear regime, since $\mathbf{u}=\bar{\mathbf{u}}$ is small. Then, taking the divergence of Eq.~\eqref{ns} and applying Eq.~\eqref{incompressible}, it follows that
 \begin{equation}
@@ -148,7 +150,7 @@ C^{m'n'}_{mn}&=\left| \bm{\kappa}_{mn}\right| \left(\frac{\sigma  \left| \bm{\ka
 D^{m'n'}_{mn}&= \left(e^{-{h_0} \left| \bm{\kappa}_{mn}\right| } I_{m-m'\, n-n'}\left(\left| \bm{\kappa}_{mn}\right|  {a_s}/2\right) - e^{{h_0} \left| \bm{\kappa}_{mn}\right| } I_{m-m'\, n-n'}\left(-\left| \bm{\kappa}_{mn}\right|  {a_s}/2\right) \right) \nonumber \\
 &\quad \times \left(1- \left(\frac{({n}-{n'}) \bm{\kappa}_{mn}.\mathbf{k}_1}{\left| \bm{\kappa}_{mn}\right| ^2}+\frac{({m}-{m'}) \bm{\kappa}_{mn}.\mathbf{k}_2}{\left| \bm{\kappa}_{mn}\right| ^2}\right)\right).
 \end{align}
-The problem is a quadratic eigenvalue problem in the driven case, but it suffices to start from the simpler undriven case here since we can numerically continue with respect to both the viscosity and the driving amplitude, as decribed below. An example dispersion relation for an inviscid fluid on a hexagonal and sinusoidal substrate is shown in Fig.~\ref{fig2}.
+The problem is a quadratic eigenvalue problem in the driven case, but it suffices to start from the simpler undriven case here since we can numerically continue with respect to both the viscosity and the driving amplitude, as decribed below. An example dispersion relation for an inviscid liquid on a hexagonal and sinusoidal substrate is shown in Fig.~\ref{fig2}.
 \begin{figure}[hbt]
 \includegraphics[width=\columnwidth]{hexagonal}
 \caption{Inviscid dispersion relation for a hexagonal lattice. \label{fig2}}
