@@ -134,7 +134,7 @@ where Eqs.~\eqref{lconstraint1}-\eqref{lkinematic} correspond to the first block
 \begin{align}
 \sum_{lmn} E_{l'm'n'}^{lmn}(\mathbf{k},\omega) \bm{\eta}_{lmn} = 0, \text{ where } E_{l'm'n'}^{lmn} \equiv D^{lmn}_{l'm'n'} - \sum_{l''m''n''} C^{lmn}_{l''m''n''}A^{-1}B^{l''m''n''}_{l'm'n'}. \label{neigen}
 \end{align}
-This is the furthest possible trivial reduction since the remaining equations are not diagonal with respect to any of the indices. 
+This is the furthest possible trivial reduction since the remaining equations are not diagonal with respect to any of the indices.
 
 To ensure the correct matrix elements, we have performed the partial inversion in Eq.~\eqref{neigen} with the symbolic algebra language Mathematica.  For the sake of notational brevity, define the symmetric sums and differences
 \begin{align*}
@@ -143,7 +143,7 @@ To ensure the correct matrix elements, we have performed the partial inversion i
 \tilde{\mathcal{C}}^{lmn}_{m'n'} &= e^{-\sqrt{\rho\Omega_{lmn}/\mu}h_0}I_{m-m'\, n-n'} \left(\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right) + e^{\sqrt{\rho\Omega_{lmn}/\mu}h_0}I_{m-m'\, n-n'} \left(-\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right), \\
 \tilde{\mathcal{S}}^{lmn}_{m'n'} &= e^{-\sqrt{\rho\Omega_{lmn}/\mu}h_0}I_{m-m'\, n-n'} \left(\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right) - e^{\sqrt{\rho\Omega_{lmn}/\mu}h_0}I_{m-m'\, n-n'} \left(-\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right).
 \end{align*}
-Then, the matrix elements for the $k$th row and $k'$th column of Eq.~\eqref{neigen} can be succinctly expressed as $E_{k'l'm'n'}^{klmn}$ where
+Then, the matrix elements for the $k$th column and $k'$th row of Eq.~\eqref{neigen} can be succinctly expressed as $E_{k'l'm'n'}^{klmn}$ where
 \begin{align}
 E_{1l'm'n'}^{1lmn} &= e^ {-\sqrt{{\rho  \Omega _{l m n}}/{\mu }}h_0}\left[ \tilde{\mathcal{C}}_{m' n'}^{l m n}-\frac{2 \mu  \left( \bm{\kappa}_{mn}\cdot\hat{\mathbf{x}} \right)^2 \mathcal{C}_{m' n'}^{m n}}{\rho  \Omega _{l m n}+\mu  \left\lvert \bm{\kappa}_{m n} \right\rvert^2}\right] \delta^l_{l'}, \\
 E_{1l'm'n'}^{2lmn} &=-e^ {-\sqrt{{\rho  \Omega _{l m n}}/{\mu }}h_0}\frac{2 \mu  \left( \bm{\kappa}_{mn}\cdot\hat{\mathbf{x}} \right) \left( \bm{\kappa}_{mn}\cdot\hat{\mathbf{y}} \right) \mathcal{C}_{m' n'}^{m n}}{\rho  \Omega _{l m n}+\mu  \left\lvert \bm{\kappa}_{m n} \right\rvert^2} \delta^l_{l'},  \\
@@ -170,7 +170,7 @@ where
 %Use the symmetric sums and differences defined above.
 \begin{align}
 C^{m'n'}_{mn}&=\left| \bm{\kappa}_{mn}\right| \left(\frac{\sigma  \left| \bm{\kappa}_{mn}\right| ^2}{\rho }+g\right)  \left(1- \left(\frac{({n}-{n'}) \bm{\kappa}_{mn}.\mathbf{k}_1}{\left| \bm{\kappa}_{mn}\right| ^2}+\frac{({m}-{m'}) \bm{\kappa}_{mn}.\mathbf{k}_2}{\left| \bm{\kappa}_{mn}\right| ^2}\right)\right) \mathcal{C}^{m'n'}_{mn}, \\
-D^{m'n'}_{mn}&=  \left(1- \left(\frac{({n}-{n'}) \bm{\kappa}_{mn}.\mathbf{k}_1}{\left| \bm{\kappa}_{mn}\right| ^2}+\frac{({m}-{m'}) \bm{\kappa}_{mn}.\mathbf{k}_2}{\left| \bm{\kappa}_{mn}\right| ^2}\right)\right) \mathcal{S}^{m'n'}_{mn},.
+D^{m'n'}_{mn}&=  \left(1- \left(\frac{({n}-{n'}) \bm{\kappa}_{mn}.\mathbf{k}_1}{\left| \bm{\kappa}_{mn}\right| ^2}+\frac{({m}-{m'}) \bm{\kappa}_{mn}.\mathbf{k}_2}{\left| \bm{\kappa}_{mn}\right| ^2}\right)\right) \mathcal{S}^{m'n'}_{mn}.
 \end{align}
 The problem becomes a quadratic eigenvalue problem in the driven case, but it suffices to start from the simpler undriven case here since we can numerically continue with respect to both the viscosity and the driving amplitude, as described below. An example dispersion relation for an inviscid liquid on a hexagonal and sinusoidal substrate is shown in Fig.~\ref{fig2}.
 \begin{figure}[hbt]
