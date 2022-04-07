@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2021.8.5)  6 APR 2022 12:43
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019/Debian) (preloaded format=pdflatex 2021.8.5)  7 APR 2022 13:52
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -498,7 +498,7 @@ ier (name{equation.2.13}) has been already used, duplicate ignored
                                                   \fi \fi 
 l.114 \begin{align}
                    ] [4] [5]
-<hexagonal.pdf, id=184, 1232.605pt x 325.215pt>
+<hexagonal.pdf, id=186, 1232.605pt x 325.215pt>
 File: hexagonal.pdf Graphic file (type pdf)
 <use hexagonal.pdf>
 Package pdftex.def Info: hexagonal.pdf  used on input line 177.
@@ -540,10 +540,10 @@ texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-
 dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texlive/texmf-dist/fo
 nts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/typ
 e1/public/amsfonts/cm/cmti9.pfb>
-Output written on viscidnotes.pdf (7 pages, 970989 bytes).
+Output written on viscidnotes.pdf (7 pages, 971093 bytes).
 PDF statistics:
- 385 PDF objects out of 1000 (max. 8388607)
- 315 compressed objects within 4 object streams
+ 387 PDF objects out of 1000 (max. 8388607)
+ 317 compressed objects within 4 object streams
  67 named destinations out of 1000 (max. 500000)
  67 words of extra memory for PDF output out of 10000 (max. 10000000)
 
