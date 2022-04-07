@@ -16,7 +16,7 @@ def viscid_mat (omega, kx, ky):
 
     kappax = kx + args.k1x*ms + args.k2x*ns
     kappay = ky + args.k1y*ms + args.k2y*ns
-    Omega = 1j*(omega + 2*np.pi*args.freq*ls + args.mu/args.rho*(kappax**2 + kappay**2)
+    Omega = 1j*(omega + 2*np.pi*args.freq*ls + args.mu/args.rho*(kappax**2 + kappay**2))
     #Define also here the symmetric sums and differences C,Ctile,S,Stilde above Eq. 31, and then assign the corresponding elements of E with array slicing.
     return E
 
@@ -39,7 +39,7 @@ def inviscid_mat (omega, kx, ky):
 if __name__ == "__main__":
 
     #Command line arguments
-    parser = argparkappax,kappay,Omegase.ArgumentParser(description='Find the Floquet exponents for a given drive and wavenumber.')
+    parser = argparse.ArgumentParser(description='Find the Floquet exponents for a given drive and wavenumber.')
     parser.add_argument("--filebase", type=str, required=True, dest='filebase', help='Base string for file output.')
     parser.add_argument("--frequency", type=float, required=False, default=20, dest='freq', help='Driving frequency (Hz)')
     parser.add_argument("--acceleration", type=float, required=False, default=0.1, dest='ad', help='Driving acceleration (in gravitational units)')
