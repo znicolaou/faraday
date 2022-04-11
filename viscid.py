@@ -46,11 +46,11 @@ if __name__ == "__main__":
     parser.add_argument("--viscosity", type=float, required=False, default=0.01, dest='mu', help='Viscosity (cgs units)')
     parser.add_argument("--density", type=float, required=False, default=1.0, dest='rho', help='Fluid density (cgs units)')
     parser.add_argument("--gravity", type=float, required=False, default=980, dest='g', help='Gravitational acceleration (cgs units)')
-    parser.add_argument("--tension", type=float, required=False, default=72, dest='sigma', help='Sargparseurface tension (cgs units)')
+    parser.add_argument("--tension", type=float, required=False, default=72, dest='sigma', help='Surface tension (cgs units)')
     parser.add_argument("--kx", type=float, required=False, default=1, dest='kx', help='Wave vector x component')
     parser.add_argument("--ky", type=float, required=False, default=0, dest='ky', help='Wave vector y component')
     parser.add_argument("--height", type=float, required=False, default=0, dest='h0', help='Fluid depth')
-    parser.add_argument("-kappax-as", type=float, required=False, default=0, dest='as', help='Substrate height')
+    parser.add_argument("--as", type=float, required=False, default=0, dest='as', help='Substrate height')
     parser.add_argument("--k1x", type=float, required=False, default=1, dest='k1x', help='First reciprocal lattice vector x component')
     parser.add_argument("--k1y", type=float, required=False, default=0, dest='k1y', help='First reciprocal lattice vector y component')
     parser.add_argument("--k2x", type=float, required=False, default=0, dest='k2x', help='Second reciprocal lattice vector x component')
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     #Find the inviscid undriven problem, and its eigenvalues and vectors
-    F,G=viscid_mat(args.kx,args.ky)
+    F,G=inviscid_mat(args.kx,args.ky)
     #save the matrices to with the filebase prefix
     F.tofile(args.filebase+'F.npy')
     G.tofile(args.filebase+'G.npy')
