@@ -4,34 +4,37 @@ import argparse
 import sys
 import os
 from scipy.linalg import eig
+from scipy.special import iv
 
-#Return a numpy array corresponding to E^{klmn}_{k'l'm'n'} in Eqs. 31-39 in the notes. Return array has shape (3,3,2*Nt-1,2*Nt-1,2*Nx-1,2*Nx-1,2*Ny-1,2*Ny-1), with axes correponding to (k,k',l,l',m,m',n,n').
+#Return a numpy array corresponding to E^{klmn}_{k'l'm'n'} in Eqs. 31-39 in the notes. Return array has shape (3,3,2*Nt+1,2*Nt+1,2*Nx+1,2*Nx+1,2*Ny+1,2*Ny+1), with axes correponding to (k',k,l',l,m',m,n',n).
 def viscid_mat (omega, kx, ky):
     #return array
-    E = np.array((3,3,2*args.Nt-1,2*args.Nt-1,2*args.Nx-1,2*args.Nx-1,2*args.Ny-1,2*args.Ny-1))
-    #mode indices. first axis for l, second for m, third for n
-    ls=np.arange(-args.Nt,args.Nt+1)[:,np.newaxis,np.newaxis]
-    ms=np.arange(-args.Nx,args.Nx+1)[np.newaxis,:,np.newaxis]
-    ns=np.arange(-args.Ny,args.Ny+1)[np.newaxis,np.newaxis,:]
+    E = np.zeros((3,3,2*args.Nt+1,2*args.Nt+1,2*args.Nx+1,2*args.Nx+1,2*args.Ny+1,2*args.Ny+1),dtype=np.complex128)
+    #mode indices. axes appear in the order (l',l,m',m,n',n)
+    lps=np.arange(-args.Nt,args.Nt+1)[:,np.newaxis,np.newaxis,np.newaxis,np.newaxis,np.newaxis]
+    ls=np.arange(-args.Nt,args.Nt+1)[np.newaxis,:,np.newaxis,np.newaxis,np.newaxis,np.newaxis]
+    mps=np.arange(-args.Nx,args.Nx+1)[np.newaxis,np.newaxis,:,np.newaxis,np.newaxis,np.newaxis]
+    ms=np.arange(-args.Nx,args.Nx+1)[np.newaxis,np.newaxis,np.newaxis,:,np.newaxis,np.newaxis]
+    nps=np.arange(-args.Ny,args.Ny+1)[np.newaxis,np.newaxis,np.newaxis,np.newaxis,:,np.newaxis]
+    ns=np.arange(-args.Ny,args.Ny+1)[np.newaxis,np.newaxis,np.newaxis,np.newaxis,np.newaxis,:]
 
     kappax = kx + args.k1x*ms + args.k2x*ns
     kappay = ky + args.k1y*ms + args.k2y*ns
-    Omega = 1j*(omega + 2*np.pi*args.freq*ls + args.mu/args.rho*(kappax**2 + kappay**2))
+    kappa = (kappax**2+kappay**2)**0.5
+    Omega = 1j*(omega + 2*np.pi*args.freq*ls) + args.mu/args.rho*kappa**2
+
     #Define also here the symmetric sums and differences C,Ctile,S,Stilde above Eq. 31, and then assign the corresponding elements of E with array slicing.
+    Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0)*iv(ms-mps,(args.rho/args.mu*Omega)**0.5*args.As)*iv(ns-nps,(args.rho/args.mu*Omega)**0.5*args.As) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)*iv(ms-mps,-(args.rho/args.mu*Omega)**0.5*args.As)*iv(ns-nps,-Omega**0.5*args.As)
+
+    E[0,0][(np.arange(E.shape[2]),np.arange(E.shape[3]))] = Ctilde
     return E
 
-#Return numpy arrays corresponding to C^{mn}_{m'n'} and D^{mn}_{m'n'} in Eqs. 41-42 in the notes. Return array has shape (2*Nx-1,2*Nx-1,2*Ny-1,2*Ny-1), with axes correponding to (m,m',n,n').
+#Return numpy arrays corresponding to C^{mn}_{m'n'} and D^{mn}_{m'n'} in Eqs. 41-42 in the notes. Return array has shape (2*Nx+1,2*Nx+1,2*Ny+1,2*Ny+1), with axes correponding to (m',m,n',n).
 def inviscid_mat (omega, kx, ky):
     #return arrays
-    F = np.array((2*args.Nx-1,2*args.Nx-1,2*args.Ny-1,2*args.Ny-1))
-    G = np.array((2*args.Nx-1,2*args.Nx-1,2*args.Ny-1,2*args.Ny-1))
-    #mode indices. first axis for m, second for n.
-    ms=np.arange(-args.Nx,args.Nx+1)[:,np.newaxis]
-    ns=np.arange(-args.Ny,args.Ny+1)[np.newaxis,:]
-    kappax = kx + args.k1x*ms + args.k2x*ns
-    kappay = ky + args.k1y*ms + args.k2y*ns
-    #Define also here the symmetric sums and differences C,S above Eq. 31, and then assign the corresponding elements of F,G with array slicing.
-
+    F = np.array((2*args.Nx+1,2*args.Nx+1,2*args.Ny-1,2*args.Ny+1))
+    G = np.array((2*args.Nx+1,2*args.Nx+1,2*args.Ny-1,2*args.Ny+1))
+    #Define mode indices and other arrays as above
 
     return F,G
 
@@ -50,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument("--kx", type=float, required=False, default=1, dest='kx', help='Wave vector x component')
     parser.add_argument("--ky", type=float, required=False, default=0, dest='ky', help='Wave vector y component')
     parser.add_argument("--height", type=float, required=False, default=0, dest='h0', help='Fluid depth')
-    parser.add_argument("--as", type=float, required=False, default=0, dest='as', help='Substrate height')
+    parser.add_argument("--as", type=float, required=False, default=0, dest='As', help='Substrate height')
     parser.add_argument("--k1x", type=float, required=False, default=1, dest='k1x', help='First reciprocal lattice vector x component')
     parser.add_argument("--k1y", type=float, required=False, default=0, dest='k1y', help='First reciprocal lattice vector y component')
     parser.add_argument("--k2x", type=float, required=False, default=0, dest='k2x', help='Second reciprocal lattice vector x component')
@@ -74,3 +77,22 @@ if __name__ == "__main__":
     #save the matrices to with the filebase prefix
     E.tofile(args.filebase+'E.npy')
     #Later, iteratively adjust omega in the nonlinear continuation
+
+else:
+    #For benchmarking in jupyter
+    class args:
+        Nx=5
+        Ny=5
+        Nt=5
+        h0=0.5
+        As=0.1
+        k1x=1
+        k1y=0
+        k2x=0
+        k2y=1
+        freq=20
+        g=980
+        sigma=72
+        rho=1
+        mu=0.01
+        ad=0.1
