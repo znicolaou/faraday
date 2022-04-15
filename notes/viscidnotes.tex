@@ -138,10 +138,10 @@ This is the furthest possible trivial reduction since the remaining equations ar
 
 To ensure the correct matrix elements, we have performed the partial inversion in Eq.~\eqref{neigen} with the symbolic algebra language Mathematica.  For the sake of notational brevity, define the symmetric sums and differences
 \begin{align*}
-\mathcal{C}^{mn}_{m'n'} &= e^{-|\bm{\kappa}_{mn}|h_0}\mathcal{I}_{m'n'}^{mn} \left(|\bm{\kappa}_{mn}|a_s/2\right) + e^{|\bm{\kappa}_{mn}|h_0}\mathcal{I}_{m'n'}^{mn} \left(-|\bm{\kappa}_{mn}|a_s/2\right), \\
-\mathcal{S}^{mn}_{m'n'} &= e^{-|\bm{\kappa}_{mn}|h_0}\mathcal{I}_{m'n'}^{mn} \left(|\bm{\kappa}_{mn}|a_s/2\right) - e^{|\bm{\kappa}_{mn}|h_0}\mathcal{I}_{m'n'}^{mn} \left(-|\bm{\kappa}_{mn}|a_s/2\right), \\
-\tilde{\mathcal{C}}^{lmn}_{m'n'} &= e^{-\sqrt{\rho\Omega_{lmn}/\mu}h_0}\mathcal{I}_{m'n'}^{mn} \left(\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right) + e^{\sqrt{\rho\Omega_{lmn}/\mu}h_0}\mathcal{I}_{m'n'}^{mn} \left(-\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right), \\
-\tilde{\mathcal{S}}^{lmn}_{m'n'} &= e^{-\sqrt{\rho\Omega_{lmn}/\mu}h_0}\mathcal{I}_{m'n'}^{mn} \left(\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right) - e^{\sqrt{\rho\Omega_{lmn}/\mu}h_0}\mathcal{I}_{m'n'}^{mn} \left(-\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right).
+\mathcal{C}^{mn}_{m'n'} &= e^{|\bm{\kappa}_{mn}|h_0}\mathcal{I}_{m'n'}^{mn} \left(-|\bm{\kappa}_{mn}|a_s/2\right)+e^{-|\bm{\kappa}_{mn}|h_0}\mathcal{I}_{m'n'}^{mn} \left(|\bm{\kappa}_{mn}|a_s/2\right), \\
+\mathcal{S}^{mn}_{m'n'} &= e^{|\bm{\kappa}_{mn}|h_0}\mathcal{I}_{m'n'}^{mn} \left(-|\bm{\kappa}_{mn}|a_s/2\right)-e^{-|\bm{\kappa}_{mn}|h_0}\mathcal{I}_{m'n'}^{mn} \left(|\bm{\kappa}_{mn}|a_s/2\right), \\
+\tilde{\mathcal{C}}^{lmn}_{m'n'} &= e^{\sqrt{\rho\Omega_{lmn}/\mu}h_0}\mathcal{I}_{m'n'}^{mn} \left(-\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right)+e^{-\sqrt{\rho\Omega_{lmn}/\mu}h_0}\mathcal{I}_{m'n'}^{mn} \left(\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right), \\
+\tilde{\mathcal{S}}^{lmn}_{m'n'} &= e^{\sqrt{\rho\Omega_{lmn}/\mu}h_0}\mathcal{I}_{m'n'}^{mn} \left(-\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right)-e^{-\sqrt{\rho\Omega_{lmn}/\mu}h_0}\mathcal{I}_{m'n'}^{mn} \left(\sqrt{\rho\Omega_{lmn}/\mu}a_s/2\right).
 \end{align*}
 Then, the matrix elements for the $k$th column and $k'$th row of Eq.~\eqref{neigen} can be succinctly expressed as $E_{k'l'm'n'}^{klmn}$ where
 \begin{align}
@@ -169,8 +169,8 @@ In the inviscid ($\mu=0$) limit of Eq.~\eqref{ns}, the highest order spatial der
 where
 %Use the symmetric sums and differences defined above.
 \begin{align}
-F^{m'n'}_{mn}&=\left| \bm{\kappa}_{mn}\right| \left(\frac{\sigma  \left| \bm{\kappa}_{mn}\right| ^2}{\rho }+g\right)  \left(1- \left(\frac{({n}-{n'}) \bm{\kappa}_{mn}.\mathbf{k}_1}{\left| \bm{\kappa}_{mn}\right| ^2}+\frac{({m}-{m'}) \bm{\kappa}_{mn}.\mathbf{k}_2}{\left| \bm{\kappa}_{mn}\right| ^2}\right)\right) \mathcal{C}^{m'n'}_{mn}, \\
-G^{m'n'}_{mn}&=  \left(1- \left(\frac{({n}-{n'}) \bm{\kappa}_{mn}.\mathbf{k}_1}{\left| \bm{\kappa}_{mn}\right| ^2}+\frac{({m}-{m'}) \bm{\kappa}_{mn}.\mathbf{k}_2}{\left| \bm{\kappa}_{mn}\right| ^2}\right)\right) \mathcal{S}^{m'n'}_{mn}.
+F^{mn}_{m'n'}&=\left| \bm{\kappa}_{mn}\right| \left(\frac{\sigma  \left| \bm{\kappa}_{mn}\right| ^2}{\rho }+g\right)  \left(1- \left(\frac{({n}-{n'}) \bm{\kappa}_{mn}.\mathbf{k}_1}{\left| \bm{\kappa}_{mn}\right| ^2}+\frac{({m}-{m'}) \bm{\kappa}_{mn}.\mathbf{k}_2}{\left| \bm{\kappa}_{mn}\right| ^2}\right)\right) \mathcal{S}^{mn}_{m'n'}, \\
+G^{mn}_{m'n'}&=  \left(1- \left(\frac{({n}-{n'}) \bm{\kappa}_{mn}.\mathbf{k}_1}{\left| \bm{\kappa}_{mn}\right| ^2}+\frac{({m}-{m'}) \bm{\kappa}_{mn}.\mathbf{k}_2}{\left| \bm{\kappa}_{mn}\right| ^2}\right)\right) \mathcal{C}^{mn}_{m'n'}.
 \end{align}
 The problem becomes a quadratic eigenvalue problem in the driven case, but it suffices to start from the simpler undriven case here since we can numerically continue with respect to both the viscosity and the driving amplitude, as described below. An example dispersion relation for an inviscid liquid on a hexagonal and sinusoidal substrate is shown in Fig.~\ref{fig2}.
 \begin{figure}[hbt]
@@ -194,16 +194,17 @@ Given good initial guesses, the Rayleigh quotient iteration converges quadratica
 \end{equation}
 Since the spectrum of the inverse matrix $T(\lambda)^{-1}$ will be dominated by the corresponding inverse eigenvalue, repeated action of $T(\lambda)^{-1}$ will converge to the eigenvectors of interest. This underlies the inverse power component of the iteration, in which the eigenvector estimates are updated by solving the systems of linear equations 
 \begin{align}
-T(\lambda_n) \bm{\xi}_n &= T'(\lambda_n)\mathbf{v}_n, \\
-T(\lambda_n)^\intercal \bm{\chi}_n &= T'(\lambda_n)^\intercal \mathbf{w}_n,
+T(\lambda_n) \bm{\xi}_n &= T'(\lambda_n)\mathbf{v}_n, \label{lsolve1} \\
+T(\lambda_n)^\intercal \bm{\chi}_n &= T'(\lambda_n)^\intercal \mathbf{w}_n, \label{lsolve2}
 \end{align}
-and we normalize the solutions to find the updated eigenvector estimates
+and normalizing the solutions,
 \begin{align}
 \mathbf{v}_{n+1}&=\frac{\bm{\xi}_n}{\sqrt{\bm{\xi}_n \cdot \bm{\xi}_n} }, \\
 \mathbf{w}_{n+1}&=\frac{\bm{\chi}_n}{\sqrt {\bm{\chi}_n \cdot \bm{\chi}_n}}. \label{norm2}
 \end{align}
+The iteration continues until no solutions to Eqs.~\eqref{lsolve1}-\eqref{lsolve2} can be found because the matrix is singular.
 
-By slowly varying the viscosity and the driving amplitude, we hope to numerically continue the inviscid and undriven dispersion relation to discover the bifurcations leading to the instabilities in the viscous system.  We can implement this continuation using a predictor-corrector approach. First, we take advantage of first order perturbation theory to predict the eigenvalue after a parameter change. Then, we use the Rayleigh quotient iteration described above to correct the solution. Let $\nu$ denote the parameter varying for the continuation, which may be either the viscosity or the driving amplitude, or any other parameter. Let $T_0 \equiv T(\lambda_0;\nu_0)$, $T_\lambda \equiv \frac{\partial T}{\partial \lambda}\rvert_{\lambda=\lambda_0, \nu=\nu_0}$, $T_\nu \equiv \frac{\partial T}{\partial \nu}\rvert_{\lambda=\lambda_0, \nu=\nu_0}$, and suppose that we have  an initial solution $T_0\mathbf{v}_0=0$ and $T_0^\intercal \mathbf{w}_0=0$, and we will attempt to predict the solution for $\nu=\nu_0 + \delta\nu$.  A simple first order perturbation expansion leads to a prediction $\lambda = \lambda_0 +\delta\lambda$, $\mathbf{v}=\mathbf{v}_0+\delta\mathbf{v}$, and $\mathbf{w}=\mathbf{w}_0+\delta\mathbf{w}$ where
+By slowly varying the viscosity and the driving amplitude, we hope to numerically continue the inviscid and undriven dispersion relation to discover the bifurcations leading to the instabilities in the viscous system.  We can implement this continuation using a predictor-corrector approach. First, we take a perturbative approach to predict the eigenvalue after a parameter change. Then, we use the Rayleigh quotient iteration described above to correct the solution. Let $\nu$ denote the parameter varying for the continuation, which may be either the viscosity or the driving amplitude, or any other parameter. Denote $T_0 \equiv T(\lambda_0;\nu_0)$, $T_\lambda \equiv \frac{\partial T}{\partial \lambda}\rvert_{\lambda=\lambda_0, \nu=\nu_0}$, $T_\nu \equiv \frac{\partial T}{\partial \nu}\rvert_{\lambda=\lambda_0, \nu=\nu_0}$.  Suppose that we have  an initial solution $T_0\mathbf{v}_0=0$ and $T_0^\intercal \mathbf{w}_0=0$, and we wish to predict the solution for $\nu=\nu_0 + \delta\nu$.  A simple first order perturbation expansion leads to a prediction $\lambda = \lambda_0 +\delta\lambda$, $\mathbf{v}=\mathbf{v}_0+\delta\mathbf{v}$, and $\mathbf{w}=\mathbf{w}_0+\delta\mathbf{w}$ where
 \begin{align}
 \delta\lambda &= - \frac{\mathbf{w}_0^\intercal T_\nu \mathbf{v}_0} { \mathbf{w}_0^\intercal T_\lambda \mathbf{v}_0}\delta\nu, \label{lambdapert} \\
 T_0 \delta \mathbf{v} &= -(\delta \nu T_\nu + \delta\lambda T_\lambda) \mathbf{v}_0, \label{lpert} \\

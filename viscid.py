@@ -24,9 +24,12 @@ def viscid_mat (omega, kx, ky):
     Omega = 1j*(omega + 2*np.pi*args.freq*ls) + args.mu/args.rho*kappa**2
 
     #Define also here the symmetric sums and differences C,Ctile,S,Stilde above Eq. 31, and then assign the corresponding elements of E with array slicing.
-    Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0)*iv(ms-mps,(args.rho/args.mu*Omega)**0.5*args.As)*iv(ns-nps,(args.rho/args.mu*Omega)**0.5*args.As) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)*iv(ms-mps,-(args.rho/args.mu*Omega)**0.5*args.As)*iv(ns-nps,-Omega**0.5*args.As)
+    Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0)*iv(ms-mps,(args.rho/args.mu*Omega)**0.5*args.As/2)*iv(ns-nps,(args.rho/args.mu*Omega)**0.5*args.As/2) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)*iv(ms-mps,-(args.rho/args.mu*Omega)**0.5*args.As/2)*iv(ns-nps,-(args.rho/args.mu*Omega)**0.5*args.As/2)
+    C = np.exp(-kappa*args.h0)*iv(ms-mps,kappa*args.As/2)*iv(ns-nps,kappa*args.As/2) + np.exp(kappa*args.h0)*iv(ms-mps,-kappa*args.As/2)*iv(ns-nps,-kappa*args.As/2)
 
-    E[0,0][(np.arange(E.shape[2]),np.arange(E.shape[3]))] = Ctilde
+    E[0,0][(np.arange(E.shape[2]),np.arange(E.shape[3]))] = Ctilde-2*args.mu/args.rho*kappax**2*C/(args.mu*kappa**2+args.rho*Omega)
+
+
     return E
 
 #Return numpy arrays corresponding to C^{mn}_{m'n'} and D^{mn}_{m'n'} in Eqs. 41-42 in the notes. Return array has shape (2*Nx+1,2*Nx+1,2*Ny+1,2*Ny+1), with axes correponding to (m',m,n',n).
@@ -81,18 +84,18 @@ if __name__ == "__main__":
 else:
     #For benchmarking in jupyter
     class args:
-        Nx=5
-        Ny=5
-        Nt=5
-        h0=0.5
-        As=0.1
-        k1x=1
-        k1y=0
+        Nx=3
+        Ny=3
+        Nt=3
+        h0=0.1
+        As=0.01
+        k1x=3**0.5/2*np.pi
+        k1y=-0.5*np.pi
         k2x=0
-        k2y=1
-        freq=20
+        k2y=np.pi
+        freq=5
         g=980
-        sigma=72
+        sigma=20
         rho=1
-        mu=0.01
+        mu=0.005
         ad=0.1
