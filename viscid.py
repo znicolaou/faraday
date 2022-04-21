@@ -8,11 +8,11 @@ from scipy.special import iv
 
 #Return a numpy array corresponding to E^{klmn}_{k'l'm'n'} in Eqs. 31-39 in the notes. Return array has shape (3,3,2*Nt+1,2*Nt+1,2*Nx+1,2*Nx+1,2*Ny+1,2*Ny+1), with axes correponding to (k',k,l',l,m',m,n',n).
 def viscid_mat (omega, kx, ky):
-    # return array
     Ftilde,Gtilde=viscid_mat2 (omega, kx, ky)
     E=Ftilde-args.ad*Gtilde
     return E
 
+#Return numpy arrays corresponding to Ftilde^{klmn}_{k'l'm'n'} and Gtilde^{klmn}_{k'l'm'n'} in Eqs. 54 in the notes.
 def viscid_mat2 (omega, kx, ky):
     # return array
     Ftilde = np.zeros((3, 3, 2*args.Nt+1, 2*args.Nt+1, 2*args.Nx+1, 2*args.Nx+1, 2*args.Ny+1, 2*args.Ny+1),dtype=np.complex128)
@@ -31,8 +31,6 @@ def viscid_mat2 (omega, kx, ky):
     kappa = (kappax**2+kappay**2)**0.5
     Omega = 1j*(omega + 2*np.pi*args.freq*ls) + args.mu/args.rho*kappa**2
 
-    # Define also here the symmetric sums and differences C, Ctilde, S, Stilde above Eq. 31, and then assign the
-    # corresponding elements of E with array slicing.
     C = np.exp(-kappa*args.h0) * iv(ms-mps, kappa*args.As*0.5) * iv(ns-nps, kappa*args.As*0.5) + \
         np.exp(kappa*args.h0) * iv(ms-mps, -kappa*args.As*0.5) * iv(ns-nps, -kappa*args.As*0.5)
 
@@ -111,9 +109,6 @@ def viscid_flat_mat (omega, kx, ky):
     kappay = ky
     kappa = (kappax**2+kappay**2)**0.5
     Omega = 1j*(omega + 2*np.pi*args.freq*ls) + args.mu/args.rho*kappa**2
-
-    # Define also here the symmetric sums and differences C, Ctilde, S, Stilde above Eq. 31, and then assign the
-    # corresponding elements of E with array slicing.
     C = np.exp(-kappa*args.h0) + np.exp(kappa*args.h0)
 
     Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0)  + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)
