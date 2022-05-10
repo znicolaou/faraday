@@ -8,7 +8,7 @@ from scipy.special import iv
 from scipy.linalg import solve
 from scipy.linalg import LinAlgWarning
 import warnings
-warnings.filterwarnings("error",category=LinAlgWarning)
+warnings.filterwarnings("ignore",category=LinAlgWarning)
 
 
 #Return a numpy array corresponding to E^{klmn}_{k'l'm'n'} in Eqs. 31-39 in the notes. Return array has shape (3,3,2*Nt+1,2*Nt+1,2*Nx+1,2*Nx+1,2*Ny+1,2*Ny+1), with axes correponding to (k',k,l',l,m',m,n',n).
@@ -152,148 +152,6 @@ def viscid_boundary (omega, args):
 
         return Ftilde,Gtilde
 
-
-def viscid_flat_boundary (omega, args):
-    if args.dim==1:
-        # return array
-        Ftilde = np.zeros((3, 3, 2*args.Nt+1, 2*args.Nt+1),dtype=np.complex128)
-        Gtilde = np.zeros((3, 3, 2*args.Nt+1, 2*args.Nt+1),dtype=np.complex128)
-
-        # mode indices. axes appear in the order (l',l,m',m,n',n)
-        lps = np.arange(-args.Nt, args.Nt + 1)[:, np.newaxis]
-        ls = np.arange(-args.Nt, args.Nt + 1)[np.newaxis, :]
-
-        kappa = args.kx
-        Omega = 1j*(omega + 2*np.pi*args.freq*ls) + args.mu/args.rho*kappa**2
-        C = np.exp(-kappa*args.h0) + np.exp(kappa*args.h0)
-
-        Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0)  + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)
-
-        S = - np.exp(-kappa*args.h0)  + np.exp(kappa*args.h0)
-
-        Stilde = - np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)
-
-        Ftilde[0, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            (Ctilde - (2*args.mu*kappax**2*C)/(args.rho*Omega+args.mu*kappa**2))
-
-        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            2*args.mu*kappax*kappay*C/(args.rho*Omega+args.mu*kappa**2)
-
-        Ftilde[2, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappax*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
-            (Ctilde-Stilde) + (args.rho*Omega+args.mu*kappa**2)*S/kappa + (args.g*args.rho**2+kappa**2*(args.rho*args.sigma - \
-            4*args.mu**2*(args.rho*Omega/args.mu)**0.5))*C/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
-
-        Gtilde[2, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,1:]
-
-        Gtilde[2, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,:-1]
-
-        Ftilde[0, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            2*args.mu*kappax*kappay*C/(args.rho*Omega+args.mu*kappa**2)
-
-        Ftilde[1, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            (Ctilde - (2*args.mu*kappay**2*C)/(args.rho*Omega+args.mu*kappa**2))
-
-        Ftilde[2, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappay*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
-            (Ctilde-Stilde) + (args.rho*Omega+args.mu*kappa**2)*S/kappa + (args.g*args.rho**2+kappa**2*(args.rho*args.sigma - \
-            4*args.mu**2*(args.rho*Omega/args.mu)**0.5))*C/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
-
-        Gtilde[2, 1][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappay*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,1:]
-
-        Gtilde[2, 1][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappay*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,:-1]
-
-        Ftilde[0, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            kappax*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
-
-        Ftilde[1, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            kappay*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
-
-        Ftilde[2, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = (-2*args.mu*kappa**2*(Ctilde-Stilde)+(args.rho*Omega + \
-            args.mu*kappa**2)*C+kappa*(args.g*args.rho**2+kappa**2*(args.rho*args.sigma-4*args.mu**2*(args.rho * \
-            Omega/args.mu)**0.5))*S/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
-
-        Gtilde[2, 2][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,1:]
-
-        Gtilde[2, 2][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,:-1]
-
-        return Ftilde,Gtilde
-
-    elif args.dim==2:
-        # return array
-        Ftilde = np.zeros((3, 3, 2*args.Nt+1, 2*args.Nt+1),dtype=np.complex128)
-        Gtilde = np.zeros((3, 3, 2*args.Nt+1, 2*args.Nt+1),dtype=np.complex128)
-
-        # mode indices. axes appear in the order (l',l,m',m,n',n)
-        lps = np.arange(-args.Nt, args.Nt + 1)[:, np.newaxis]
-        ls = np.arange(-args.Nt, args.Nt + 1)[np.newaxis, :]
-
-        kappax = args.kx
-        kappay = args.ky
-        kappa = (kappax**2+kappay**2)**0.5
-        Omega = 1j*(omega + 2*np.pi*args.freq*ls) + args.mu/args.rho*kappa**2
-        C = np.exp(-kappa*args.h0) + np.exp(kappa*args.h0)
-
-        Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0)  + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)
-
-        S = - np.exp(-kappa*args.h0)  + np.exp(kappa*args.h0)
-
-        Stilde = - np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)
-
-        Ftilde[0, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            (Ctilde - (2*args.mu*kappax**2*C)/(args.rho*Omega+args.mu*kappa**2))
-
-        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            2*args.mu*kappax*kappay*C/(args.rho*Omega+args.mu*kappa**2)
-
-        Ftilde[2, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappax*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
-            (Ctilde-Stilde) + (args.rho*Omega+args.mu*kappa**2)*S/kappa + (args.g*args.rho**2+kappa**2*(args.rho*args.sigma - \
-            4*args.mu**2*(args.rho*Omega/args.mu)**0.5))*C/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
-
-        Gtilde[2, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,1:]
-
-        Gtilde[2, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,:-1]
-
-        Ftilde[0, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            2*args.mu*kappax*kappay*C/(args.rho*Omega+args.mu*kappa**2)
-
-        Ftilde[1, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            (Ctilde - (2*args.mu*kappay**2*C)/(args.rho*Omega+args.mu*kappa**2))
-
-        Ftilde[2, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappay*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
-            (Ctilde-Stilde) + (args.rho*Omega+args.mu*kappa**2)*S/kappa + (args.g*args.rho**2+kappa**2*(args.rho*args.sigma - \
-            4*args.mu**2*(args.rho*Omega/args.mu)**0.5))*C/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
-
-        Gtilde[2, 1][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappay*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,1:]
-
-        Gtilde[2, 1][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappay*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,:-1]
-
-        Ftilde[0, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            kappax*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
-
-        Ftilde[1, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            kappay*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
-
-        Ftilde[2, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = (-2*args.mu*kappa**2*(Ctilde-Stilde)+(args.rho*Omega + \
-            args.mu*kappa**2)*C+kappa*(args.g*args.rho**2+kappa**2*(args.rho*args.sigma-4*args.mu**2*(args.rho * \
-            Omega/args.mu)**0.5))*S/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
-
-        Gtilde[2, 2][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,1:]
-
-        Gtilde[2, 2][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,:-1]
-
-        return Ftilde,Gtilde
-
 #Return numpy arrays corresponding to C^{mn}_{m'n'} and D^{mn}_{m'n'} in Eqs. 41-42 in the notes. Return array has shape (2*Nx+1,2*Nx+1,2*Ny+1,2*Ny+1), with axes correponding to (m',m,n',n).
 def inviscid_mat (args):
     if args.dim==1:
@@ -333,7 +191,7 @@ def rayleigh(omega_0, v0, w0, args):
     vn=v0
     wn=w0
 
-    itmax=100
+    itmax=20
     omegas=[]
     vns=[]
     wns=[]
@@ -365,6 +223,9 @@ def rayleigh(omega_0, v0, w0, args):
             omega=omega+domega
             vn=(xi/np.linalg.norm(xi))
             wn=zeta/np.linalg.norm(zeta)
+            omegas=omegas+[omega]
+            vns=vns+[vn]
+            wns=wns+[wn]
         except LinAlgWarning:
             if args.dim==1:
                 domega=-np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn)
@@ -380,7 +241,7 @@ def rayleigh(omega_0, v0, w0, args):
             if args.dim==2:
                 print(n, omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn))
             break
-    return omegas[-1],vns[-1],wns[-1]
+    return omegas,vns,wns
 
 #include this in case we want to import functions here elsewhere, in a jupyter notebook for example.
 if __name__ == "__main__":
