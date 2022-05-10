@@ -30,34 +30,33 @@ def viscid_boundary (omega, args):
         mps = np.arange(-args.Nx, args.Nx + 1)[np.newaxis, np.newaxis, :, np.newaxis]
         ms = np.arange(-args.Nx, args.Nx + 1)[np.newaxis, np.newaxis, np.newaxis, :]
 
-        kappa = args.kx + args.k1x*ms
+        kappax = args.kx + args.k1x*ms
+        kappa = np.abs(kappax)
         Omega = 1j*(omega + 2*np.pi*args.freq*ls) + args.mu/args.rho*kappa**2
 
-        C = np.exp(-kappa*args.h0) * iv(ms-mps, kappa*args.As*0.5) * iv(ms-mps, kappa*args.As*0.5) + \
-            np.exp(kappa*args.h0) * iv(ms-mps, -kappa*args.As*0.5) * iv(ms-mps, -kappa*args.As*0.5)
+        C = np.exp(-kappa*args.h0)*iv(ms-mps,kappa*args.As) + np.exp(kappa*args.h0)*iv(ms-mps,-kappa*args.As)
 
-        Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, (args.rho/args.mu*Omega)**0.5*args.As*0.5) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, -(args.rho/args.mu*Omega)**0.5*args.As*0.5)
+        Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, (args.rho/args.mu*Omega)**0.5*args.As) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, -(args.rho/args.mu*Omega)**0.5*args.As)
 
-        S = - np.exp(-kappa*args.h0) * iv(ms-mps, kappa*args.As*0.5) * iv(ms-mps, kappa*args.As*0.5) + \
-            np.exp(kappa*args.h0) * iv(ms-mps, -kappa*args.As*0.5) * iv(ms-mps, -kappa*args.As*0.5)
+        S = -np.exp(-kappa*args.h0)*iv(ms-mps,kappa*args.As) + np.exp(kappa*args.h0)*iv(ms-mps,-kappa*args.As)
 
-        Stilde = - np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, (args.rho/args.mu*Omega)**0.5*args.As*0.5) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, -(args.rho/args.mu*Omega)**0.5*args.As*0.5)
+        Stilde = - np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, (args.rho/args.mu*Omega)**0.5*args.As) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, -(args.rho/args.mu*Omega)**0.5*args.As)
 
         Ftilde[0, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            (Ctilde - (2*args.mu*kappa**2*C)/(args.rho*Omega+args.mu*kappa**2))
+            (Ctilde - (2*args.mu*kappax**2*C)/(args.rho*Omega+args.mu*kappa**2))
 
-        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappa*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
+        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappax*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
             (Ctilde-Stilde) + (args.rho*Omega+args.mu*kappa**2)*S/kappa + (args.g*args.rho**2+kappa**2*(args.rho*args.sigma - \
             4*args.mu**2*(args.rho*Omega/args.mu)**0.5))*C/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
 
-        Gtilde[1, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappa*C/(4*(args.rho*Omega +
+        Gtilde[1, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
                                                                                                          args.mu*kappa**2))[:,1:]
 
-        Gtilde[1, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappa*C/(4*(args.rho*Omega +
+        Gtilde[1, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
                                                                                                          args.mu*kappa**2))[:,:-1]
 
         Ftilde[0, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            kappa*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
+            kappax*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
 
         Ftilde[1, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = (-2*args.mu*kappa**2*(Ctilde-Stilde)+(args.rho*Omega + \
             args.mu*kappa**2)*C+kappa*(args.g*args.rho**2+kappa**2*(args.rho*args.sigma-4*args.mu**2*(args.rho * \
@@ -302,12 +301,13 @@ def inviscid_mat (args):
         mps=np.arange(-args.Nx,args.Nx+1)[np.newaxis,np.newaxis,:,np.newaxis]
         ms=np.arange(-args.Nx,args.Nx+1)[np.newaxis,np.newaxis,np.newaxis,:]
 
-        kappa = args.kx
+        kappax = args.kx + args.k1x*ms
+        kappa = np.abs(kappax)
         C = np.exp(-kappa*args.h0)*iv(ms-mps,kappa*args.As) + np.exp(kappa*args.h0)*iv(ms-mps,-kappa*args.As)
         S = -np.exp(-kappa*args.h0)*iv(ms-mps,kappa*args.As) + np.exp(kappa*args.h0)*iv(ms-mps,-kappa*args.As)
 
-        F=kappa*(args.g+args.sigma/args.rho*kappa**2)*(1-((ms-mps)*(args.k1x*kappa))/kappa**2)*S
-        G=-(1-((ms-mps)*(args.k1x*kappa))/kappa**2)*C
+        F=kappa*(args.g+args.sigma/args.rho*kappa**2)*(1-((ms-mps)*(args.k1x*kappax))/kappa**2)*S
+        G=-(1-((ms-mps)*(args.k1x*kappax))/kappa**2)*C
 
     elif args.dim==2:
         #mode indices. axes appear in the order (l',l,m',m,n',n)
@@ -342,21 +342,43 @@ def rayleigh(omega_0, v0, w0, args):
         E_n=viscid_mat(omega, args)
         # print(omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn))
         dE=(viscid_mat(omega+args.domega_fd,args)-E_n)/args.domega_fd
-        flat=np.transpose(E_n,(0,2,4,6,1,3,5,7)).reshape((3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1),3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1)))
+        if args.dim==1:
+            flat=np.transpose(E_n,(0,2,4,1,3,5)).reshape((2*(2*args.Nt+1)*(2*args.Nx+1),2*(2*args.Nt+1)*(2*args.Nx+1)))
+            bflat=np.einsum("kKlLmM,KLM",dE,vn).reshape(2*(2*args.Nt+1)*(2*args.Nx+1))
+            btflat=np.einsum("kKlLmM,klm",dE,wn).reshape(2*(2*args.Nt+1)*(2*args.Nx+1))
+        if args.dim==2:
+            flat=np.transpose(E_n,(0,2,4,6,1,3,5,7)).reshape((3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1),3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1)))
+            bflat=np.einsum("kKlLmMnN,KLMN",dE,vn).reshape(3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1))
+            btflat=np.einsum("kKlLmMnN,klmn",dE,wn).reshape(3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1))
         try:
-            xi=solve(flat, np.einsum("kKlLmMnN,KLMN",dE,vn).reshape(3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1))).reshape(3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1))
-            zeta=solve(flat.T, np.einsum("kKlLmMnN,klmn",dE,wn).reshape(3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1))).reshape(3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1))
-            domega=-np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmMnN,KLMN,klmn",dE,vn,wn)
+            xi=solve(flat, bflat)
+            zeta=solve(flat.T, btflat)
+            if args.dim==1:
+                xi=xi.reshape(2,(2*args.Nt+1),(2*args.Nx+1))
+                zeta=zeta.reshape(2,(2*args.Nt+1),(2*args.Nx+1))
+                domega=-np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn)
+            if args.dim==2:
+                xi=xi.reshape(3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1))
+                zeta=zeta.reshape(3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1))
+                domega=-np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmMnN,KLMN,klmn",dE,vn,wn)
+
             omega=omega+domega
-            vn=xi/np.linalg.norm(xi)
+            vn=(xi/np.linalg.norm(xi))
             wn=zeta/np.linalg.norm(zeta)
         except LinAlgWarning:
-            domega=-np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmMnN,KLMN,klmn",dE,vn,wn)
+            if args.dim==1:
+                domega=-np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn)
+            if args.dim==2:
+                domega=-np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmMnN,KLMN,klmn",dE,vn,wn)
+
             omega=omega+domega
             omegas=omegas+[omega]
             vns=vns+[vn]
             wns=wns+[wn]
-            print(n, omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn))
+            if args.dim==1:
+                print(n, omega, np.einsum("kKlLmM,KLM,klm",E_n,vn,wn))
+            if args.dim==2:
+                print(n, omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn))
             break
     return omegas[-1],vns[-1],wns[-1]
 
@@ -373,14 +395,14 @@ if __name__ == "__main__":
     parser.add_argument("--density", type=float, required=False, default=1.0, dest='rho', help='Fluid density (cgs units)')
     parser.add_argument("--gravity", type=float, required=False, default=980, dest='g', help='Gravitational acceleration (cgs units)')
     parser.add_argument("--tension", type=float, required=False, default=20, dest='sigma', help='Surface tension (cgs units)')
-    parser.add_argument("--kx", type=float, required=False, default=0, dest='kx', help='Wave vector x component')
-    parser.add_argument("--ky", type=float, required=False, default=0.5*np.pi, dest='ky', help='Wave vector y component')
+    parser.add_argument("--kx", type=float, required=False, default=0.5*np.pi, dest='kx', help='Wave vector x component')
+    parser.add_argument("--ky", type=float, required=False, default=0, dest='ky', help='Wave vector y component')
     parser.add_argument("--height", type=float, required=False, default=0.1, dest='h0', help='Fluid depth')
     parser.add_argument("--as", type=float, required=False, default=0.05, dest='As', help='Substrate height')
-    parser.add_argument("--k1x", type=float, required=False, default=3**0.5/2*np.pi, dest='k1x', help='First reciprocal lattice vector x component')
-    parser.add_argument("--k1y", type=float, required=False, default=-0.5*np.pi, dest='k1y', help='First reciprocal lattice vector y component')
-    parser.add_argument("--k2x", type=float, required=False, default=0, dest='k2x', help='Second reciprocal lattice vector x component')
-    parser.add_argument("--k2y", type=float, required=False, default=np.pi, dest='k2y', help='Second reciprocal lattice vector y component')
+    parser.add_argument("--k1x", type=float, required=False, default=np.pi, dest='k1x', help='Second reciprocal lattice vector x component')
+    parser.add_argument("--k1y", type=float, required=False, default=0, dest='k1y', help='Second reciprocal lattice vector y component')
+    parser.add_argument("--k2x", type=float, required=False, default=-0.5*np.pi, dest='k2x', help='First reciprocal lattice vector x component')
+    parser.add_argument("--k2y", type=float, required=False, default=3**0.5/2*np.pi, dest='k2y', help='First reciprocal lattice vector y component')
     parser.add_argument("--Nt", type=int, required=False, default=5, dest='Nt', help='Number of modes to include the Floquet expansion for time')
     parser.add_argument("--Nx", type=int, required=False, default=5, dest='Nx', help='Number of modes to include the Floquet expansion for spatial x')
     parser.add_argument("--Ny", type=int, required=False, default=5, dest='Ny', help='Number of modes to include the Floquet expansion for spatial y')
@@ -388,6 +410,7 @@ if __name__ == "__main__":
     parser.add_argument("--nmodes", type=int, required=False, default=2, dest='nmodes', help='Number of modes to track. Default 2.')
     parser.add_argument("--itmax", type=int, required=False, default=0, dest='itmax', help='Number of iterators in acceleration continuation.')
     parser.add_argument("--domega_fd", type=float, required=False, default=0.1, dest='domega_fd', help='Finite difference step')
+    parser.add_argument("--negatives", type=int, required=False, default=1, dest='negatives', help='Include negative frequencies')
 
     args = parser.parse_args()
 
@@ -397,6 +420,7 @@ if __name__ == "__main__":
 
     #If no initial modes exist, use the lowest frequency inviscid modes to start
     # if not os.path.isfile(args.filebase+'evals.npy') or not os.path.isfile(args.filebase+'evecs.npy'):
+    print(args)
     F,G=inviscid_mat(args)
     if args.dim==1:
         Fflattened=F[0,0]
@@ -410,14 +434,13 @@ if __name__ == "__main__":
     omegas=[]
     vns=[]
     wns=[]
-    negatives=True
     for i in range(args.nmodes):
         ind=inds[i]
         if args.dim==1:
             v0_inviscid=revecs[:,ind]
             w0_inviscid=np.conjugate(levecs[:,ind])
-            v=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
-            w=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
+            v=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
+            w=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
 
         elif args.dim==2:
             v0_inviscid=revecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1)))
@@ -426,22 +449,41 @@ if __name__ == "__main__":
             w=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
 
         omega_inviscid=(-evals[ind])**0.5
-        v[2,args.Nt]=v0_inviscid
-        w[2,args.Nt]=w0_inviscid
+        print(omega_inviscid)
+        if args.dim==1:
+            v[1,args.Nt]=v0_inviscid
+            w[1,args.Nt]=w0_inviscid
+        if args.dim==2:
+            v[2,args.Nt]=v0_inviscid
+            w[2,args.Nt]=w0_inviscid
         omegas_i,vns_i,wns_i=rayleigh(omega_inviscid,v,w,args)
         omegas=omegas+[omegas_i]
         vns=vns+[vns_i]
         wns=wns+[wns_i]
-    if negatives:
+    if args.negatives:
         for i in range(args.nmodes):
             ind=inds[i]
-            v0_inviscid=revecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1)))
-            w0_inviscid=np.conjugate(levecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1))))
+            if args.dim==1:
+                v0_inviscid=revecs[:,ind]
+                w0_inviscid=np.conjugate(levecs[:,ind])
+                v=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
+                w=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
+
+            elif args.dim==2:
+                v0_inviscid=revecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1)))
+                w0_inviscid=np.conjugate(levecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1))))
+                v=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
+                w=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
             omega_inviscid=-(-evals[ind])**0.5
-            v=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
-            w=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
-            v[2,args.Nt]=v0_inviscid
-            w[2,args.Nt]=w0_inviscid
+            print(omega_inviscid)
+            if args.dim==1:
+                v[1,args.Nt]=v0_inviscid
+                w[1,args.Nt]=w0_inviscid
+            if args.dim==2:
+                v[2,args.Nt]=v0_inviscid
+                w[2,args.Nt]=w0_inviscid
+
+
             omegas_i,vns_i,wns_i=rayleigh(omega_inviscid,v,w,args)
             omegas=omegas+[omegas_i]
             vns=vns+[vns_i]
@@ -484,11 +526,11 @@ else:
         Nt=5
         h0=0.1
         As=0.05
-        k1x=3**0.5/2*np.pi
-        k1y=-0.5*np.pi
-        k2x=0
-        k2y=np.pi
-        freq=5
+        k2y=3**0.5/2*np.pi
+        k2x=-0.5*np.pi
+        k1y=0
+        k1x=np.pi
+        freq=4
         g=980
         sigma=20
         rho=1
@@ -496,5 +538,7 @@ else:
         ad=0.1
         domega_fd=0.1
         dim=2
-        kx=0
-        ky=0.5*np.pi
+        kx=0.5*np.pi
+        ky=0
+        def __str__(self):
+            return str(self.__dict__)
