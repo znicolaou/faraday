@@ -3,12 +3,14 @@ import numpy as np
 import argparse
 import sys
 import os
+import json
 from scipy.linalg import eig
 from scipy.special import iv
 from scipy.linalg import solve
 from scipy.linalg import LinAlgWarning
 import warnings
 warnings.filterwarnings("ignore",category=LinAlgWarning)
+# warnings.filterwarnings("error",category=LinAlgWarning)
 
 
 #Return a numpy array corresponding to E^{klmn}_{k'l'm'n'} in Eqs. 31-39 in the notes. Return array has shape (3,3,2*Nt+1,2*Nt+1,2*Nx+1,2*Nx+1,2*Ny+1,2*Ny+1), with axes correponding to (k',k,l',l,m',m,n',n).
@@ -311,14 +313,12 @@ def rayleigh(omega_0, v0, w0, args):
     vn=v0
     wn=w0
 
-    itmax=20
     omegas=[]
     vns=[]
     wns=[]
     omega=omega_0
-    for n in range(itmax):
+    for n in range(args.itmax):
         E_n=viscid_mat(omega, args)
-        # print(omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn))
         dE=(viscid_mat(omega+args.domega_fd,args)-E_n)/args.domega_fd
         if args.dim==1:
             flat=np.transpose(E_n,(0,2,4,1,3,5)).reshape((2*(2*args.Nt+1)*(2*args.Nx+1),2*(2*args.Nt+1)*(2*args.Nx+1)))
@@ -356,13 +356,14 @@ def rayleigh(omega_0, v0, w0, args):
             omegas=omegas+[omega]
             vns=vns+[vn]
             wns=wns+[wn]
-            if args.dim==1:
-                print(n, omega, np.einsum("kKlLmM,KLM,klm",E_n,vn,wn))
-            if args.dim==2:
-                print(n, omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn))
             break
-    return omegas[-1],vns[-1],wns[-1]
-    # return omegas,vns,wns
+
+    if args.dim==1:
+        print(n, omega, np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn))
+    if args.dim==2:
+        print(n, omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn))
+    # return omegas[-1],vns[-1],wns[-1]
+    return omegas,vns,wns
 
 #include this in case we want to import functions here elsewhere, in a jupyter notebook for example.
 if __name__ == "__main__":
@@ -390,7 +391,8 @@ if __name__ == "__main__":
     parser.add_argument("--Ny", type=int, required=False, default=5, dest='Ny', help='Number of modes to include the Floquet expansion for spatial y')
     parser.add_argument("--dim", type=int, required=False, default=2, dest='dim', help='Dimension, 1 or 2. Default 2.')
     parser.add_argument("--nmodes", type=int, required=False, default=2, dest='nmodes', help='Number of modes to track. Default 2.')
-    parser.add_argument("--itmax", type=int, required=False, default=0, dest='itmax', help='Number of iterators in acceleration continuation.')
+    parser.add_argument("--itmax", type=int, required=False, default=5, dest='itmax', help='Number of iterators in acceleration continuation.')
+    parser.add_argument("--num", type=int, required=False, default=0, dest='num', help='Number of iterators in acceleration continuation.')
     parser.add_argument("--domega_fd", type=float, required=False, default=0.1, dest='domega_fd', help='Finite difference step')
     parser.add_argument("--negatives", type=int, required=False, default=1, dest='negatives', help='Include negative frequencies')
 
@@ -403,6 +405,11 @@ if __name__ == "__main__":
     #If no initial modes exist, use the lowest frequency inviscid modes to start
     # if not os.path.isfile(args.filebase+'evals.npy') or not os.path.isfile(args.filebase+'evecs.npy'):
     print(args)
+    json=json.dumps(args.__dict__)
+    f=open(args.filebase+'args.json','w')
+    f.write(json)
+    f.close()
+
     F,G=inviscid_mat(args)
     if args.dim==1:
         Fflattened=F[0,0]
@@ -420,13 +427,15 @@ if __name__ == "__main__":
         ind=inds[i]
         if args.dim==1:
             v0_inviscid=revecs[:,ind]
-            w0_inviscid=np.conjugate(levecs[:,ind])
+            # w0_inviscid=np.conjugate(levecs[:,ind])
+            w0_inviscid=1
             v=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
             w=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
 
         elif args.dim==2:
             v0_inviscid=revecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1)))
-            w0_inviscid=np.conjugate(levecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1))))
+            # w0_inviscid=np.conjugate(levecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1))))
+            w0_inviscid=1
             v=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
             w=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
 
@@ -438,22 +447,40 @@ if __name__ == "__main__":
         if args.dim==2:
             v[2,args.Nt]=v0_inviscid
             w[2,args.Nt]=w0_inviscid
-        omegas_i,vns_i,wns_i=rayleigh(omega_inviscid,v,w,args)
-        omegas=omegas+[omegas_i]
-        vns=vns+[vns_i]
-        wns=wns+[wns_i]
+
+
+        #Should we iteratively increase as through num steps here??
+        # omegas_i,vns_i,wns_i=rayleigh(omega_inviscid,v,w,args)
+        As=args.As
+        args.As=0
+        omega=omega_inviscid
+        for it in range(args.num+1):
+            print(it,omega)
+            args.As += As/args.num
+            omegas_i,vns_i,wns_i=rayleigh(omega,v,w,args)
+            omega=omegas_i[-1]
+            v=vns_i[-1]
+            w=wns_i[-1]
+        omegas=omegas+[omegas_i[-1]]
+        vns=vns+[vns_i[-1]]
+        wns=wns+[wns_i[-1]]
+        omegas=omegas+[omegas_i[-1]]
+        vns=vns+[vns_i[-1]]
+        wns=wns+[wns_i[-1]]
     if args.negatives:
         for i in range(args.nmodes):
             ind=inds[i]
             if args.dim==1:
                 v0_inviscid=revecs[:,ind]
-                w0_inviscid=np.conjugate(levecs[:,ind])
+                # w0_inviscid=np.conjugate(levecs[:,ind])
+                w0_inviscid=1
                 v=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
                 w=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
 
             elif args.dim==2:
                 v0_inviscid=revecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1)))
-                w0_inviscid=np.conjugate(levecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1))))
+                # w0_inviscid=np.conjugate(levecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1))))
+                w0_inviscid=1
                 v=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
                 w=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
             omega_inviscid=-(-evals[ind])**0.5
@@ -466,11 +493,21 @@ if __name__ == "__main__":
                 w[2,args.Nt]=w0_inviscid
 
 
-            omegas_i,vns_i,wns_i=rayleigh(omega_inviscid,v,w,args)
-            omegas=omegas+[omegas_i]
-            vns=vns+[vns_i]
-            wns=wns+[wns_i]
-
+            #Should we iteratively increase as through num steps here??
+            As=args.As
+            args.As=0
+            omega=omega_inviscid
+            for it in range(args.num+1):
+                print(it,omega)
+                args.As += As/args.num
+                omegas_i,vns_i,wns_i=rayleigh(omega,v,w,args)
+                omega=omegas_i[-1]
+                v=vns_i[-1]
+                w=wns_i[-1]
+            omegas=omegas+[omegas_i[-1]]
+            vns=vns+[vns_i[-1]]
+            wns=wns+[wns_i[-1]]
+    # exit(0)
     #save the matrices to with the filebase prefix
     np.save(args.filebase+"evals.npy",np.array(omegas))
     np.save(args.filebase+"evecs.npy",[np.array(vns),np.array(wns)])
@@ -481,20 +518,20 @@ if __name__ == "__main__":
     revecs,levecs=np.load(args.filebase+'evecs.npy')
     for i in range(len(omegas)):
         args.ad=ad0
-        omegan=omegas[i]
-        vn=revecs[i]
-        wn=levecs[i]
-        omegans=[omegan]
-        vns=[vn]
-        wns=[wn]
+        omegan=[omegas[i]]
+        vn=[revecs[i]]
+        wn=[levecs[i]]
+        omegans=[omegan[-1]]
+        vns=[vn[-1]]
+        wns=[wn[-1]]
 
-        for it in range(args.itmax):
-            args.ad += args.g*args.dad/args.itmax
-            print(args.ad, omegan)
-            omegan,vn,wn=rayleigh(omegan,vn,wn,args)
-            omegans=omegans+[omegan]
-            vns=vns+[vn]
-            wns=wns+[wn]
+        for it in range(args.num):
+            args.ad += args.g*args.dad/args.num
+            print(args.ad)
+            omegan,vn,wn=rayleigh(omegan[-1],vn[-1],wn[-1],args)
+            omegans=omegans+[omegan[-1]]
+            vns=vns+[vn[-1]]
+            wns=wns+[wn[-1]]
 
         np.save(args.filebase+"evals_cont"+str(i)+".npy",np.array(omegans))
         np.save(args.filebase+"evecs_cont"+str(i)+".npy",[np.array(vns),np.array(wns)])
