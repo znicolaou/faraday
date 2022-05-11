@@ -409,7 +409,8 @@ if __name__ == "__main__":
     f=open(args.filebase+'args.json','w')
     f.write(json)
     f.close()
-
+    As=args.As
+    args.As=0
     F,G=inviscid_mat(args)
     if args.dim==1:
         Fflattened=F[0,0]
@@ -451,19 +452,16 @@ if __name__ == "__main__":
 
         #Should we iteratively increase as through num steps here??
         # omegas_i,vns_i,wns_i=rayleigh(omega_inviscid,v,w,args)
-        As=args.As
-        args.As=0
         omega=omega_inviscid
-        for it in range(args.num+1):
-            print(it,omega)
+        args.As=0
+        for it in range(args.num):
             args.As += As/args.num
+            print(args.As)
             omegas_i,vns_i,wns_i=rayleigh(omega,v,w,args)
             omega=omegas_i[-1]
             v=vns_i[-1]
             w=wns_i[-1]
-        omegas=omegas+[omegas_i[-1]]
-        vns=vns+[vns_i[-1]]
-        wns=wns+[wns_i[-1]]
+        print(args.As)
         omegas=omegas+[omegas_i[-1]]
         vns=vns+[vns_i[-1]]
         wns=wns+[wns_i[-1]]
@@ -492,14 +490,11 @@ if __name__ == "__main__":
                 v[2,args.Nt]=v0_inviscid
                 w[2,args.Nt]=w0_inviscid
 
-
-            #Should we iteratively increase as through num steps here??
-            As=args.As
             args.As=0
             omega=omega_inviscid
-            for it in range(args.num+1):
-                print(it,omega)
+            for it in range(args.num):
                 args.As += As/args.num
+                print(args.As)
                 omegas_i,vns_i,wns_i=rayleigh(omega,v,w,args)
                 omega=omegas_i[-1]
                 v=vns_i[-1]
@@ -507,7 +502,6 @@ if __name__ == "__main__":
             omegas=omegas+[omegas_i[-1]]
             vns=vns+[vns_i[-1]]
             wns=wns+[wns_i[-1]]
-    # exit(0)
     #save the matrices to with the filebase prefix
     np.save(args.filebase+"evals.npy",np.array(omegas))
     np.save(args.filebase+"evecs.npy",[np.array(vns),np.array(wns)])
