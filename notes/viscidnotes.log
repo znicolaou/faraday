@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.8.29)  15 APR 2022 11:38
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.8.29)  10 MAY 2022 19:48
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -509,13 +509,13 @@ l.114 \begin{align}
 <hexagonal.pdf, id=186, 1232.605pt x 325.215pt>
 File: hexagonal.pdf Graphic file (type pdf)
 <use hexagonal.pdf>
-Package pdftex.def Info: hexagonal.pdf  used on input line 177.
+Package pdftex.def Info: hexagonal.pdf  used on input line 176.
 (pdftex.def)             Requested size: 510.0pt x 134.55975pt.
  [6 <./hexagonal.pdf>]
 <boundaries.pdf, id=305, 902.37125pt x 258.9675pt>
 File: boundaries.pdf Graphic file (type pdf)
 <use boundaries.pdf>
-Package pdftex.def Info: boundaries.pdf  used on input line 224.
+Package pdftex.def Info: boundaries.pdf  used on input line 223.
 (pdftex.def)             Requested size: 510.0pt x 146.3643pt.
  [7]
 No file viscidnotes.bbl.
@@ -552,7 +552,7 @@ ive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive
 21/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2021
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2021/t
 exmf-dist/fonts/type1/public/amsfonts/symbols/msam7.pfb>
-Output written on viscidnotes.pdf (8 pages, 1019056 bytes).
+Output written on viscidnotes.pdf (8 pages, 1018686 bytes).
 PDF statistics:
  450 PDF objects out of 1000 (max. 8388607)
  367 compressed objects within 4 object streams
