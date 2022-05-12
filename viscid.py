@@ -15,302 +15,302 @@ warnings.filterwarnings("ignore",category=LinAlgWarning)
 
 
 #Return a numpy array corresponding to E^{klmn}_{k'l'm'n'} in Eqs. 31-39 in the notes. Return array has shape (3,3,2*Nt+1,2*Nt+1,2*Nx+1,2*Nx+1,2*Ny+1,2*Ny+1), with axes correponding to (k',k,l',l,m',m,n',n).
-def viscid_mat (omega, args):
-    Ftilde,Gtilde=viscid_boundary (omega, args)
-    E=Ftilde-args.ad*Gtilde
+def viscid_mat (omega, argsdict):
+    Ftilde,Gtilde=viscid_boundary (omega, argsdict)
+    E=Ftilde-argsdict['ad']*Gtilde
     return E
 
 #Return numpy arrays corresponding to Ftilde^{klmn}_{k'l'm'n'} and Gtilde^{klmn}_{k'l'm'n'} in Eqs. 54 in the notes.
-def viscid_boundary (omega, args):
-    if args.dim==1:
+def viscid_boundary (omega, argsdict):
+    if argsdict['dim']==1:
         # return array
-        Ftilde = np.zeros((2, 2, 2*args.Nt+1, 2*args.Nt+1, 2*args.Nx+1, 2*args.Nx+1),dtype=np.complex128)
-        Gtilde = np.zeros((2, 2, 2*args.Nt+1, 2*args.Nt+1, 2*args.Nx+1, 2*args.Nx+1),dtype=np.complex128)
+        Ftilde = np.zeros((2, 2, 2*argsdict['Nt']+1, 2*argsdict['Nt']+1, 2*argsdict['Nx']+1, 2*argsdict['Nx']+1),dtype=np.complex128)
+        Gtilde = np.zeros((2, 2, 2*argsdict['Nt']+1, 2*argsdict['Nt']+1, 2*argsdict['Nx']+1, 2*argsdict['Nx']+1),dtype=np.complex128)
 
         # mode indices. axes appear in the order (l',l,m',m,n',n)
-        lps = np.arange(-args.Nt, args.Nt + 1)[:, np.newaxis, np.newaxis, np.newaxis]
-        ls = np.arange(-args.Nt, args.Nt + 1)[np.newaxis, :, np.newaxis, np.newaxis]
-        mps = np.arange(-args.Nx, args.Nx + 1)[np.newaxis, np.newaxis, :, np.newaxis]
-        ms = np.arange(-args.Nx, args.Nx + 1)[np.newaxis, np.newaxis, np.newaxis, :]
+        lps = np.arange(-argsdict['Nt'], argsdict['Nt'] + 1)[:, np.newaxis, np.newaxis, np.newaxis]
+        ls = np.arange(-argsdict['Nt'], argsdict['Nt'] + 1)[np.newaxis, :, np.newaxis, np.newaxis]
+        mps = np.arange(-argsdict['Nx'], argsdict['Nx'] + 1)[np.newaxis, np.newaxis, :, np.newaxis]
+        ms = np.arange(-argsdict['Nx'], argsdict['Nx'] + 1)[np.newaxis, np.newaxis, np.newaxis, :]
 
-        kappax = args.kx + args.k1x*ms
+        kappax = argsdict['kx'] + argsdict['k1x']*ms
         kappa = np.abs(kappax)
-        Omega = 1j*(omega + 2*np.pi*args.freq*ls) + args.mu/args.rho*kappa**2
+        Omega = 1j*(omega + 2*np.pi*argsdict['freq']*ls) + argsdict['mu']/argsdict['rho']*kappa**2
 
-        C = np.exp(-kappa*args.h0)*iv(ms-mps,kappa*args.As) + np.exp(kappa*args.h0)*iv(ms-mps,-kappa*args.As)
+        C = np.exp(-kappa*argsdict['h0'])*iv(ms-mps,kappa*argsdict['As']) + np.exp(kappa*argsdict['h0'])*iv(ms-mps,-kappa*argsdict['As'])
 
-        Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, (args.rho/args.mu*Omega)**0.5*args.As) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, -(args.rho/args.mu*Omega)**0.5*args.As)
+        Ctilde = np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * iv(ms-mps, (argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As']) + np.exp((argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * iv(ms-mps, -(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As'])
 
-        S = -np.exp(-kappa*args.h0)*iv(ms-mps,kappa*args.As) + np.exp(kappa*args.h0)*iv(ms-mps,-kappa*args.As)
+        S = -np.exp(-kappa*argsdict['h0'])*iv(ms-mps,kappa*argsdict['As']) + np.exp(kappa*argsdict['h0'])*iv(ms-mps,-kappa*argsdict['As'])
 
-        Stilde = - np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, (args.rho/args.mu*Omega)**0.5*args.As) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, -(args.rho/args.mu*Omega)**0.5*args.As)
+        Stilde = - np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * iv(ms-mps, (argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As']) + np.exp((argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * iv(ms-mps, -(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As'])
 
-        Ftilde[0, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            (Ctilde - (2*args.mu*kappax**2*C)/(args.rho*Omega+args.mu*kappa**2))
+        Ftilde[0, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            (Ctilde - (2*argsdict['mu']*kappax**2*C)/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))
 
-        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappax*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
-            (Ctilde-Stilde) + (args.rho*Omega+args.mu*kappa**2)*S/kappa + (args.g*args.rho**2+kappa**2*(args.rho*args.sigma - \
-            4*args.mu**2*(args.rho*Omega/args.mu)**0.5))*C/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
+        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappax*(2*argsdict['mu']*(argsdict['rho']/argsdict['mu']*Omega)**0.5 * \
+            (Ctilde-Stilde) + (argsdict['rho']*Omega+argsdict['mu']*kappa**2)*S/kappa + (argsdict['g']*argsdict['rho']**2+kappa**2*(argsdict['rho']*argsdict['sigma'] - \
+            4*argsdict['mu']**2*(argsdict['rho']*Omega/argsdict['mu'])**0.5))*C/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))/(2*argsdict['rho'])
 
-        Gtilde[1, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,1:]
+        Gtilde[1, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*argsdict['rho']*kappax*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,1:]
 
-        Gtilde[1, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,:-1]
+        Gtilde[1, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*argsdict['rho']*kappax*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,:-1]
 
-        Ftilde[0, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            kappax*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
+        Ftilde[0, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            kappax*(-2*argsdict['mu']*kappa*S/(argsdict['rho']*Omega+argsdict['mu']*kappa**2)+Stilde/(argsdict['rho']*Omega/argsdict['mu'])**0.5)
 
-        Ftilde[1, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = (-2*args.mu*kappa**2*(Ctilde-Stilde)+(args.rho*Omega + \
-            args.mu*kappa**2)*C+kappa*(args.g*args.rho**2+kappa**2*(args.rho*args.sigma-4*args.mu**2*(args.rho * \
-            Omega/args.mu)**0.5))*S/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
+        Ftilde[1, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = (-2*argsdict['mu']*kappa**2*(Ctilde-Stilde)+(argsdict['rho']*Omega + \
+            argsdict['mu']*kappa**2)*C+kappa*(argsdict['g']*argsdict['rho']**2+kappa**2*(argsdict['rho']*argsdict['sigma']-4*argsdict['mu']**2*(argsdict['rho'] * \
+            Omega/argsdict['mu'])**0.5))*S/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))/(2*argsdict['rho'])
 
-        Gtilde[1, 1][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,1:]
+        Gtilde[1, 1][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = argsdict['rho']*kappa*S/(4*(argsdict['rho']*Omega + \
+                                                                                                          argsdict['mu']*kappa**2))[:,1:]
 
-        Gtilde[1, 1][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,:-1]
+        Gtilde[1, 1][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = argsdict['rho']*kappa*S/(4*(argsdict['rho']*Omega + \
+                                                                                                          argsdict['mu']*kappa**2))[:,:-1]
 
         return Ftilde,Gtilde
 
-    elif args.dim==2:
+    elif argsdict['dim']==2:
         # return array
-        Ftilde = np.zeros((3, 3, 2*args.Nt+1, 2*args.Nt+1, 2*args.Nx+1, 2*args.Nx+1, 2*args.Ny+1, 2*args.Ny+1),dtype=np.complex128)
-        Gtilde = np.zeros((3, 3, 2*args.Nt+1, 2*args.Nt+1, 2*args.Nx+1, 2*args.Nx+1, 2*args.Ny+1, 2*args.Ny+1),dtype=np.complex128)
+        Ftilde = np.zeros((3, 3, 2*argsdict['Nt']+1, 2*argsdict['Nt']+1, 2*argsdict['Nx']+1, 2*argsdict['Nx']+1, 2*argsdict['Ny']+1, 2*argsdict['Ny']+1),dtype=np.complex128)
+        Gtilde = np.zeros((3, 3, 2*argsdict['Nt']+1, 2*argsdict['Nt']+1, 2*argsdict['Nx']+1, 2*argsdict['Nx']+1, 2*argsdict['Ny']+1, 2*argsdict['Ny']+1),dtype=np.complex128)
 
         # mode indices. axes appear in the order (l',l,m',m,n',n)
-        lps = np.arange(-args.Nt, args.Nt + 1)[:, np.newaxis, np.newaxis, np.newaxis, np.newaxis, np.newaxis]
-        ls = np.arange(-args.Nt, args.Nt + 1)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis]
-        mps = np.arange(-args.Nx, args.Nx + 1)[np.newaxis, np.newaxis, :, np.newaxis, np.newaxis, np.newaxis]
-        ms = np.arange(-args.Nx, args.Nx + 1)[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
-        nps = np.arange(-args.Ny, args.Ny + 1)[np.newaxis, np.newaxis, np.newaxis, np.newaxis, :, np.newaxis]
-        ns = np.arange(-args.Ny, args.Ny + 1)[np.newaxis, np.newaxis, np.newaxis, np.newaxis, np.newaxis, :]
+        lps = np.arange(-argsdict['Nt'], argsdict['Nt'] + 1)[:, np.newaxis, np.newaxis, np.newaxis, np.newaxis, np.newaxis]
+        ls = np.arange(-argsdict['Nt'], argsdict['Nt'] + 1)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis]
+        mps = np.arange(-argsdict['Nx'], argsdict['Nx'] + 1)[np.newaxis, np.newaxis, :, np.newaxis, np.newaxis, np.newaxis]
+        ms = np.arange(-argsdict['Nx'], argsdict['Nx'] + 1)[np.newaxis, np.newaxis, np.newaxis, :, np.newaxis, np.newaxis]
+        nps = np.arange(-argsdict['Ny'], argsdict['Ny'] + 1)[np.newaxis, np.newaxis, np.newaxis, np.newaxis, :, np.newaxis]
+        ns = np.arange(-argsdict['Ny'], argsdict['Ny'] + 1)[np.newaxis, np.newaxis, np.newaxis, np.newaxis, np.newaxis, :]
 
-        kappax = args.kx + args.k1x*ms + args.k2x*ns
-        kappay = args.ky + args.k1y*ms + args.k2y*ns
+        kappax = argsdict['kx'] + argsdict['k1x']*ms + argsdict['k2x']*ns
+        kappay = argsdict['ky'] + argsdict['k1y']*ms + argsdict['k2y']*ns
         kappa = (kappax**2+kappay**2)**0.5
-        Omega = 1j*(omega + 2*np.pi*args.freq*ls) + args.mu/args.rho*kappa**2
+        Omega = 1j*(omega + 2*np.pi*argsdict['freq']*ls) + argsdict['mu']/argsdict['rho']*kappa**2
 
-        C = np.exp(-kappa*args.h0) * iv(ms-mps, kappa*args.As*0.5) * iv(ns-nps, kappa*args.As*0.5) + \
-            np.exp(kappa*args.h0) * iv(ms-mps, -kappa*args.As*0.5) * iv(ns-nps, -kappa*args.As*0.5)
+        C = np.exp(-kappa*argsdict['h0']) * iv(ms-mps, kappa*argsdict['As']*0.5) * iv(ns-nps, kappa*argsdict['As']*0.5) + \
+            np.exp(kappa*argsdict['h0']) * iv(ms-mps, -kappa*argsdict['As']*0.5) * iv(ns-nps, -kappa*argsdict['As']*0.5)
 
-        Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, (args.rho/args.mu*Omega)**0.5*args.As*0.5) * \
-                 iv(ns-nps, (args.rho/args.mu*Omega)**0.5*args.As*0.5) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0) * \
-                 iv(ms-mps, -(args.rho/args.mu*Omega)**0.5*args.As*0.5) * iv(ns-nps, -(args.rho/args.mu*Omega)**0.5*args.As*0.5)
+        Ctilde = np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * iv(ms-mps, (argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As']*0.5) * \
+                 iv(ns-nps, (argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As']*0.5) + np.exp((argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+                 iv(ms-mps, -(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As']*0.5) * iv(ns-nps, -(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As']*0.5)
 
-        S = - np.exp(-kappa*args.h0) * iv(ms-mps, kappa*args.As*0.5) * iv(ns-nps, kappa*args.As*0.5) + \
-            np.exp(kappa*args.h0) * iv(ms-mps, -kappa*args.As*0.5) * iv(ns-nps, -kappa*args.As*0.5)
+        S = - np.exp(-kappa*argsdict['h0']) * iv(ms-mps, kappa*argsdict['As']*0.5) * iv(ns-nps, kappa*argsdict['As']*0.5) + \
+            np.exp(kappa*argsdict['h0']) * iv(ms-mps, -kappa*argsdict['As']*0.5) * iv(ns-nps, -kappa*argsdict['As']*0.5)
 
-        Stilde = - np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * iv(ms-mps, (args.rho/args.mu*Omega)**0.5*args.As*0.5) * \
-                 iv(ns-nps, (args.rho/args.mu*Omega)**0.5*args.As*0.5) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0) * \
-                 iv(ms-mps, -(args.rho/args.mu*Omega)**0.5*args.As*0.5) * iv(ns-nps, -(args.rho/args.mu*Omega)**0.5*args.As*0.5)
+        Stilde = - np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * iv(ms-mps, (argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As']*0.5) * \
+                 iv(ns-nps, (argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As']*0.5) + np.exp((argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+                 iv(ms-mps, -(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As']*0.5) * iv(ns-nps, -(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['As']*0.5)
 
-        Ftilde[0, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            (Ctilde - (2*args.mu*kappax**2*C)/(args.rho*Omega+args.mu*kappa**2))
+        Ftilde[0, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            (Ctilde - (2*argsdict['mu']*kappax**2*C)/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))
 
-        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            2*args.mu*kappax*kappay*C/(args.rho*Omega+args.mu*kappa**2)
+        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            2*argsdict['mu']*kappax*kappay*C/(argsdict['rho']*Omega+argsdict['mu']*kappa**2)
 
-        Ftilde[2, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappax*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
-            (Ctilde-Stilde) + (args.rho*Omega+args.mu*kappa**2)*S/kappa + (args.g*args.rho**2+kappa**2*(args.rho*args.sigma - \
-            4*args.mu**2*(args.rho*Omega/args.mu)**0.5))*C/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
+        Ftilde[2, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappax*(2*argsdict['mu']*(argsdict['rho']/argsdict['mu']*Omega)**0.5 * \
+            (Ctilde-Stilde) + (argsdict['rho']*Omega+argsdict['mu']*kappa**2)*S/kappa + (argsdict['g']*argsdict['rho']**2+kappa**2*(argsdict['rho']*argsdict['sigma'] - \
+            4*argsdict['mu']**2*(argsdict['rho']*Omega/argsdict['mu'])**0.5))*C/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))/(2*argsdict['rho'])
 
-        Gtilde[2, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,1:]
+        Gtilde[2, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*argsdict['rho']*kappax*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,1:]
 
-        Gtilde[2, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,:-1]
+        Gtilde[2, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*argsdict['rho']*kappax*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,:-1]
 
-        Ftilde[0, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            2*args.mu*kappax*kappay*C/(args.rho*Omega+args.mu*kappa**2)
+        Ftilde[0, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            2*argsdict['mu']*kappax*kappay*C/(argsdict['rho']*Omega+argsdict['mu']*kappa**2)
 
-        Ftilde[1, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            (Ctilde - (2*args.mu*kappay**2*C)/(args.rho*Omega+args.mu*kappa**2))
+        Ftilde[1, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            (Ctilde - (2*argsdict['mu']*kappay**2*C)/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))
 
-        Ftilde[2, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappay*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
-            (Ctilde-Stilde) + (args.rho*Omega+args.mu*kappa**2)*S/kappa + (args.g*args.rho**2+kappa**2*(args.rho*args.sigma - \
-            4*args.mu**2*(args.rho*Omega/args.mu)**0.5))*C/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
+        Ftilde[2, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappay*(2*argsdict['mu']*(argsdict['rho']/argsdict['mu']*Omega)**0.5 * \
+            (Ctilde-Stilde) + (argsdict['rho']*Omega+argsdict['mu']*kappa**2)*S/kappa + (argsdict['g']*argsdict['rho']**2+kappa**2*(argsdict['rho']*argsdict['sigma'] - \
+            4*argsdict['mu']**2*(argsdict['rho']*Omega/argsdict['mu'])**0.5))*C/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))/(2*argsdict['rho'])
 
-        Gtilde[2, 1][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappay*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,1:]
+        Gtilde[2, 1][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*argsdict['rho']*kappay*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,1:]
 
-        Gtilde[2, 1][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappay*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,:-1]
+        Gtilde[2, 1][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*argsdict['rho']*kappay*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,:-1]
 
-        Ftilde[0, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            kappax*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
+        Ftilde[0, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            kappax*(-2*argsdict['mu']*kappa*S/(argsdict['rho']*Omega+argsdict['mu']*kappa**2)+Stilde/(argsdict['rho']*Omega/argsdict['mu'])**0.5)
 
-        Ftilde[1, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            kappay*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
+        Ftilde[1, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            kappay*(-2*argsdict['mu']*kappa*S/(argsdict['rho']*Omega+argsdict['mu']*kappa**2)+Stilde/(argsdict['rho']*Omega/argsdict['mu'])**0.5)
 
-        Ftilde[2, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = (-2*args.mu*kappa**2*(Ctilde-Stilde)+(args.rho*Omega + \
-            args.mu*kappa**2)*C+kappa*(args.g*args.rho**2+kappa**2*(args.rho*args.sigma-4*args.mu**2*(args.rho * \
-            Omega/args.mu)**0.5))*S/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
+        Ftilde[2, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = (-2*argsdict['mu']*kappa**2*(Ctilde-Stilde)+(argsdict['rho']*Omega + \
+            argsdict['mu']*kappa**2)*C+kappa*(argsdict['g']*argsdict['rho']**2+kappa**2*(argsdict['rho']*argsdict['sigma']-4*argsdict['mu']**2*(argsdict['rho'] * \
+            Omega/argsdict['mu'])**0.5))*S/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))/(2*argsdict['rho'])
 
-        Gtilde[2, 2][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,1:]
+        Gtilde[2, 2][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = argsdict['rho']*kappa*S/(4*(argsdict['rho']*Omega + \
+                                                                                                          argsdict['mu']*kappa**2))[:,1:]
 
-        Gtilde[2, 2][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,:-1]
+        Gtilde[2, 2][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = argsdict['rho']*kappa*S/(4*(argsdict['rho']*Omega + \
+                                                                                                          argsdict['mu']*kappa**2))[:,:-1]
 
         return Ftilde,Gtilde
 
 #Return numpy arrays corresponding to C^{mn}_{m'n'} and D^{mn}_{m'n'} in Eqs. 41-42 in the notes. Return array has shape (2*Nx+1,2*Nx+1,2*Ny+1,2*Ny+1), with axes correponding to (m',m,n',n).
-def inviscid_mat (args):
-    if args.dim==1:
+def inviscid_mat (argsdict):
+    if argsdict['dim']==1:
         #mode indices. axes appear in the order (l',l,m',m)
-        mps=np.arange(-args.Nx,args.Nx+1)[np.newaxis,np.newaxis,:,np.newaxis]
-        ms=np.arange(-args.Nx,args.Nx+1)[np.newaxis,np.newaxis,np.newaxis,:]
+        mps=np.arange(-argsdict['Nx'],argsdict['Nx']+1)[np.newaxis,np.newaxis,:,np.newaxis]
+        ms=np.arange(-argsdict['Nx'],argsdict['Nx']+1)[np.newaxis,np.newaxis,np.newaxis,:]
 
-        kappax = args.kx + args.k1x*ms
+        kappax = argsdict['kx'] + argsdict['k1x']*ms
         kappa = np.abs(kappax)
-        C = np.exp(-kappa*args.h0)*iv(ms-mps,kappa*args.As) + np.exp(kappa*args.h0)*iv(ms-mps,-kappa*args.As)
-        S = -np.exp(-kappa*args.h0)*iv(ms-mps,kappa*args.As) + np.exp(kappa*args.h0)*iv(ms-mps,-kappa*args.As)
+        C = np.exp(-kappa*argsdict['h0'])*iv(ms-mps,kappa*argsdict['As']) + np.exp(kappa*argsdict['h0'])*iv(ms-mps,-kappa*argsdict['As'])
+        S = -np.exp(-kappa*argsdict['h0'])*iv(ms-mps,kappa*argsdict['As']) + np.exp(kappa*argsdict['h0'])*iv(ms-mps,-kappa*argsdict['As'])
 
-        F=kappa*(args.g+args.sigma/args.rho*kappa**2)*(1-((ms-mps)*(args.k1x*kappax))/kappa**2)*S
-        G=-(1-((ms-mps)*(args.k1x*kappax))/kappa**2)*C
+        F=kappa*(argsdict['g']+argsdict['sigma']/argsdict['rho']*kappa**2)*(1-((ms-mps)*(argsdict['k1x']*kappax))/kappa**2)*S
+        G=-(1-((ms-mps)*(argsdict['k1x']*kappax))/kappa**2)*C
 
-    elif args.dim==2:
+    elif argsdict['dim']==2:
         #mode indices. axes appear in the order (l',l,m',m,n',n)
-        mps=np.arange(-args.Nx,args.Nx+1)[np.newaxis,np.newaxis,:,np.newaxis,np.newaxis,np.newaxis]
-        ms=np.arange(-args.Nx,args.Nx+1)[np.newaxis,np.newaxis,np.newaxis,:,np.newaxis,np.newaxis]
-        nps=np.arange(-args.Ny,args.Ny+1)[np.newaxis,np.newaxis,np.newaxis,np.newaxis,:,np.newaxis]
-        ns=np.arange(-args.Ny,args.Ny+1)[np.newaxis,np.newaxis,np.newaxis,np.newaxis,np.newaxis,:]
+        mps=np.arange(-argsdict['Nx'],argsdict['Nx']+1)[np.newaxis,np.newaxis,:,np.newaxis,np.newaxis,np.newaxis]
+        ms=np.arange(-argsdict['Nx'],argsdict['Nx']+1)[np.newaxis,np.newaxis,np.newaxis,:,np.newaxis,np.newaxis]
+        nps=np.arange(-argsdict['Ny'],argsdict['Ny']+1)[np.newaxis,np.newaxis,np.newaxis,np.newaxis,:,np.newaxis]
+        ns=np.arange(-argsdict['Ny'],argsdict['Ny']+1)[np.newaxis,np.newaxis,np.newaxis,np.newaxis,np.newaxis,:]
 
-        kappax = args.kx + args.k1x*ms + args.k2x*ns
-        kappay = args.ky + args.k1y*ms + args.k2y*ns
+        kappax = argsdict['kx'] + argsdict['k1x']*ms + argsdict['k2x']*ns
+        kappay = argsdict['ky'] + argsdict['k1y']*ms + argsdict['k2y']*ns
         kappa = (kappax**2+kappay**2)**0.5
 
-        C = np.exp(-kappa*args.h0)*iv(ms-mps,kappa*args.As/2)*iv(ns-nps,kappa*args.As/2) + np.exp(kappa*args.h0)*iv(ms-mps,-kappa*args.As/2)*iv(ns-nps,-kappa*args.As/2)
-        S = -np.exp(-kappa*args.h0)*iv(ms-mps,kappa*args.As/2)*iv(ns-nps,kappa*args.As/2) + np.exp(kappa*args.h0)*iv(ms-mps,-kappa*args.As/2)*iv(ns-nps,-kappa*args.As/2)
+        C = np.exp(-kappa*argsdict['h0'])*iv(ms-mps,kappa*argsdict['As']/2)*iv(ns-nps,kappa*argsdict['As']/2) + np.exp(kappa*argsdict['h0'])*iv(ms-mps,-kappa*argsdict['As']/2)*iv(ns-nps,-kappa*argsdict['As']/2)
+        S = -np.exp(-kappa*argsdict['h0'])*iv(ms-mps,kappa*argsdict['As']/2)*iv(ns-nps,kappa*argsdict['As']/2) + np.exp(kappa*argsdict['h0'])*iv(ms-mps,-kappa*argsdict['As']/2)*iv(ns-nps,-kappa*argsdict['As']/2)
 
-        F=kappa*(args.g+args.sigma/args.rho*kappa**2)*(1-((ns-nps)*(args.k1x*kappax+args.k1y*kappay)+(ms-mps)*(args.k2x*kappax+args.k2y*kappay))/kappa**2)*S
-        G=-(1-((ns-nps)*(args.k1x*kappax+args.k1y*kappay)+(ms-mps)*(args.k2x*kappax+args.k2y*kappay))/kappa**2)*C
+        F=kappa*(argsdict['g']+argsdict['sigma']/argsdict['rho']*kappa**2)*(1-((ns-nps)*(argsdict['k1x']*kappax+argsdict['k1y']*kappay)+(ms-mps)*(argsdict['k2x']*kappax+argsdict['k2y']*kappay))/kappa**2)*S
+        G=-(1-((ns-nps)*(argsdict['k1x']*kappax+argsdict['k1y']*kappay)+(ms-mps)*(argsdict['k2x']*kappax+argsdict['k2y']*kappay))/kappa**2)*C
 
     return F,G
 
-def viscid_flat_boundary (omega, args):
-    if args.dim==1:
+def viscid_flat_boundary (omega, argsdict):
+    if argsdict['dim']==1:
         # return array
-        Ftilde = np.zeros((2, 2, 2*args.Nt+1, 2*args.Nt+1),dtype=np.complex128)
-        Gtilde = np.zeros((2, 2, 2*args.Nt+1, 2*args.Nt+1),dtype=np.complex128)
+        Ftilde = np.zeros((2, 2, 2*argsdict['Nt']+1, 2*argsdict['Nt']+1),dtype=np.complex128)
+        Gtilde = np.zeros((2, 2, 2*argsdict['Nt']+1, 2*argsdict['Nt']+1),dtype=np.complex128)
 
         # mode indices. axes appear in the order (l',l,m',m,n',n)
-        lps = np.arange(-args.Nt, args.Nt + 1)[:, np.newaxis]
-        ls = np.arange(-args.Nt, args.Nt + 1)[np.newaxis, :]
+        lps = np.arange(-argsdict['Nt'], argsdict['Nt'] + 1)[:, np.newaxis]
+        ls = np.arange(-argsdict['Nt'], argsdict['Nt'] + 1)[np.newaxis, :]
 
-        kappax = args.kx
+        kappax = argsdict['kx']
         kappa = np.abs(kappax)
-        Omega = 1j*(omega + 2*np.pi*args.freq*ls) + args.mu/args.rho*kappa**2
-        C = np.exp(-kappa*args.h0) + np.exp(kappa*args.h0)
+        Omega = 1j*(omega + 2*np.pi*argsdict['freq']*ls) + argsdict['mu']/argsdict['rho']*kappa**2
+        C = np.exp(-kappa*argsdict['h0']) + np.exp(kappa*argsdict['h0'])
 
-        Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0)  + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)
+        Ctilde = np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0'])  + np.exp((argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0'])
 
-        S = - np.exp(-kappa*args.h0)  + np.exp(kappa*args.h0)
+        S = - np.exp(-kappa*argsdict['h0'])  + np.exp(kappa*argsdict['h0'])
 
-        Stilde = - np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)
+        Stilde = - np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) + np.exp((argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0'])
 
-        Ftilde[0, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            (Ctilde - (2*args.mu*kappax**2*C)/(args.rho*Omega+args.mu*kappa**2))
+        Ftilde[0, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            (Ctilde - (2*argsdict['mu']*kappax**2*C)/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))
 
-        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappax*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
-            (Ctilde-Stilde) + (args.rho*Omega+args.mu*kappa**2)*S/kappa + (args.g*args.rho**2+kappa**2*(args.rho*args.sigma - \
-            4*args.mu**2*(args.rho*Omega/args.mu)**0.5))*C/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
+        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappax*(2*argsdict['mu']*(argsdict['rho']/argsdict['mu']*Omega)**0.5 * \
+            (Ctilde-Stilde) + (argsdict['rho']*Omega+argsdict['mu']*kappa**2)*S/kappa + (argsdict['g']*argsdict['rho']**2+kappa**2*(argsdict['rho']*argsdict['sigma'] - \
+            4*argsdict['mu']**2*(argsdict['rho']*Omega/argsdict['mu'])**0.5))*C/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))/(2*argsdict['rho'])
 
-        Gtilde[1, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,1:]
+        Gtilde[1, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*argsdict['rho']*kappax*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,1:]
 
-        Gtilde[1, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,:-1]
+        Gtilde[1, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*argsdict['rho']*kappax*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,:-1]
 
-        Ftilde[0, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            kappax*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
+        Ftilde[0, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            kappax*(-2*argsdict['mu']*kappa*S/(argsdict['rho']*Omega+argsdict['mu']*kappa**2)+Stilde/(argsdict['rho']*Omega/argsdict['mu'])**0.5)
 
-        Ftilde[1, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = (-2*args.mu*kappa**2*(Ctilde-Stilde)+(args.rho*Omega + \
-            args.mu*kappa**2)*C+kappa*(args.g*args.rho**2+kappa**2*(args.rho*args.sigma-4*args.mu**2*(args.rho * \
-            Omega/args.mu)**0.5))*S/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
+        Ftilde[1, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = (-2*argsdict['mu']*kappa**2*(Ctilde-Stilde)+(argsdict['rho']*Omega + \
+            argsdict['mu']*kappa**2)*C+kappa*(argsdict['g']*argsdict['rho']**2+kappa**2*(argsdict['rho']*argsdict['sigma']-4*argsdict['mu']**2*(argsdict['rho'] * \
+            Omega/argsdict['mu'])**0.5))*S/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))/(2*argsdict['rho'])
 
-        Gtilde[1, 1][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,1:]
+        Gtilde[1, 1][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = argsdict['rho']*kappa*S/(4*(argsdict['rho']*Omega + \
+                                                                                                          argsdict['mu']*kappa**2))[:,1:]
 
-        Gtilde[1, 1][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,:-1]
+        Gtilde[1, 1][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = argsdict['rho']*kappa*S/(4*(argsdict['rho']*Omega + \
+                                                                                                          argsdict['mu']*kappa**2))[:,:-1]
 
         return Ftilde,Gtilde
 
-    elif args.dim==2:
+    elif argsdict['dim']==2:
         # return array
-        Ftilde = np.zeros((3, 3, 2*args.Nt+1, 2*args.Nt+1),dtype=np.complex128)
-        Gtilde = np.zeros((3, 3, 2*args.Nt+1, 2*args.Nt+1),dtype=np.complex128)
+        Ftilde = np.zeros((3, 3, 2*argsdict['Nt']+1, 2*argsdict['Nt']+1),dtype=np.complex128)
+        Gtilde = np.zeros((3, 3, 2*argsdict['Nt']+1, 2*argsdict['Nt']+1),dtype=np.complex128)
 
         # mode indices. axes appear in the order (l',l,m',m,n',n)
-        lps = np.arange(-args.Nt, args.Nt + 1)[:, np.newaxis]
-        ls = np.arange(-args.Nt, args.Nt + 1)[np.newaxis, :]
+        lps = np.arange(-argsdict['Nt'], argsdict['Nt'] + 1)[:, np.newaxis]
+        ls = np.arange(-argsdict['Nt'], argsdict['Nt'] + 1)[np.newaxis, :]
 
-        kappax = args.kx
-        kappay = args.ky
+        kappax = argsdict['kx']
+        kappay = argsdict['ky']
         kappa = (kappax**2+kappay**2)**0.5
-        Omega = 1j*(omega + 2*np.pi*args.freq*ls) + args.mu/args.rho*kappa**2
-        C = np.exp(-kappa*args.h0) + np.exp(kappa*args.h0)
+        Omega = 1j*(omega + 2*np.pi*argsdict['freq']*ls) + argsdict['mu']/argsdict['rho']*kappa**2
+        C = np.exp(-kappa*argsdict['h0']) + np.exp(kappa*argsdict['h0'])
 
-        Ctilde = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0)  + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)
+        Ctilde = np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0'])  + np.exp((argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0'])
 
-        S = - np.exp(-kappa*args.h0)  + np.exp(kappa*args.h0)
+        S = - np.exp(-kappa*argsdict['h0'])  + np.exp(kappa*argsdict['h0'])
 
-        Stilde = - np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) + np.exp((args.rho/args.mu*Omega)**0.5*args.h0)
+        Stilde = - np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) + np.exp((argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0'])
 
-        Ftilde[0, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            (Ctilde - (2*args.mu*kappax**2*C)/(args.rho*Omega+args.mu*kappa**2))
+        Ftilde[0, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            (Ctilde - (2*argsdict['mu']*kappax**2*C)/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))
 
-        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            2*args.mu*kappax*kappay*C/(args.rho*Omega+args.mu*kappa**2)
+        Ftilde[1, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            2*argsdict['mu']*kappax*kappay*C/(argsdict['rho']*Omega+argsdict['mu']*kappa**2)
 
-        Ftilde[2, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappax*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
-            (Ctilde-Stilde) + (args.rho*Omega+args.mu*kappa**2)*S/kappa + (args.g*args.rho**2+kappa**2*(args.rho*args.sigma - \
-            4*args.mu**2*(args.rho*Omega/args.mu)**0.5))*C/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
+        Ftilde[2, 0][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappax*(2*argsdict['mu']*(argsdict['rho']/argsdict['mu']*Omega)**0.5 * \
+            (Ctilde-Stilde) + (argsdict['rho']*Omega+argsdict['mu']*kappa**2)*S/kappa + (argsdict['g']*argsdict['rho']**2+kappa**2*(argsdict['rho']*argsdict['sigma'] - \
+            4*argsdict['mu']**2*(argsdict['rho']*Omega/argsdict['mu'])**0.5))*C/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))/(2*argsdict['rho'])
 
-        Gtilde[2, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,1:]
+        Gtilde[2, 0][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*argsdict['rho']*kappax*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,1:]
 
-        Gtilde[2, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappax*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,:-1]
+        Gtilde[2, 0][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*argsdict['rho']*kappax*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,:-1]
 
-        Ftilde[0, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            2*args.mu*kappax*kappay*C/(args.rho*Omega+args.mu*kappa**2)
+        Ftilde[0, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            2*argsdict['mu']*kappax*kappay*C/(argsdict['rho']*Omega+argsdict['mu']*kappa**2)
 
-        Ftilde[1, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            (Ctilde - (2*args.mu*kappay**2*C)/(args.rho*Omega+args.mu*kappa**2))
+        Ftilde[1, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            (Ctilde - (2*argsdict['mu']*kappay**2*C)/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))
 
-        Ftilde[2, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappay*(2*args.mu*(args.rho/args.mu*Omega)**0.5 * \
-            (Ctilde-Stilde) + (args.rho*Omega+args.mu*kappa**2)*S/kappa + (args.g*args.rho**2+kappa**2*(args.rho*args.sigma - \
-            4*args.mu**2*(args.rho*Omega/args.mu)**0.5))*C/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
+        Ftilde[2, 1][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = -1j*kappay*(2*argsdict['mu']*(argsdict['rho']/argsdict['mu']*Omega)**0.5 * \
+            (Ctilde-Stilde) + (argsdict['rho']*Omega+argsdict['mu']*kappa**2)*S/kappa + (argsdict['g']*argsdict['rho']**2+kappa**2*(argsdict['rho']*argsdict['sigma'] - \
+            4*argsdict['mu']**2*(argsdict['rho']*Omega/argsdict['mu'])**0.5))*C/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))/(2*argsdict['rho'])
 
-        Gtilde[2, 1][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*args.rho*kappay*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,1:]
+        Gtilde[2, 1][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = -1j*argsdict['rho']*kappay*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,1:]
 
-        Gtilde[2, 1][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*args.rho*kappay*C/(4*(args.rho*Omega +
-                                                                                                         args.mu*kappa**2))[:,:-1]
+        Gtilde[2, 1][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = -1j*argsdict['rho']*kappay*C/(4*(argsdict['rho']*Omega +
+                                                                                                         argsdict['mu']*kappa**2))[:,:-1]
 
-        Ftilde[0, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            kappax*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
+        Ftilde[0, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            kappax*(-2*argsdict['mu']*kappa*S/(argsdict['rho']*Omega+argsdict['mu']*kappa**2)+Stilde/(argsdict['rho']*Omega/argsdict['mu'])**0.5)
 
-        Ftilde[1, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(args.rho/args.mu*Omega)**0.5*args.h0) * \
-            kappay*(-2*args.mu*kappa*S/(args.rho*Omega+args.mu*kappa**2)+Stilde/(args.rho*Omega/args.mu)**0.5)
+        Ftilde[1, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = 1j*np.exp(-(argsdict['rho']/argsdict['mu']*Omega)**0.5*argsdict['h0']) * \
+            kappay*(-2*argsdict['mu']*kappa*S/(argsdict['rho']*Omega+argsdict['mu']*kappa**2)+Stilde/(argsdict['rho']*Omega/argsdict['mu'])**0.5)
 
-        Ftilde[2, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = (-2*args.mu*kappa**2*(Ctilde-Stilde)+(args.rho*Omega + \
-            args.mu*kappa**2)*C+kappa*(args.g*args.rho**2+kappa**2*(args.rho*args.sigma-4*args.mu**2*(args.rho * \
-            Omega/args.mu)**0.5))*S/(args.rho*Omega+args.mu*kappa**2))/(2*args.rho)
+        Ftilde[2, 2][(np.arange(Ftilde.shape[2]), np.arange(Ftilde.shape[3]))] = (-2*argsdict['mu']*kappa**2*(Ctilde-Stilde)+(argsdict['rho']*Omega + \
+            argsdict['mu']*kappa**2)*C+kappa*(argsdict['g']*argsdict['rho']**2+kappa**2*(argsdict['rho']*argsdict['sigma']-4*argsdict['mu']**2*(argsdict['rho'] * \
+            Omega/argsdict['mu'])**0.5))*S/(argsdict['rho']*Omega+argsdict['mu']*kappa**2))/(2*argsdict['rho'])
 
-        Gtilde[2, 2][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,1:]
+        Gtilde[2, 2][(np.arange(1, Ftilde.shape[2]), np.arange(Ftilde.shape[3]-1))] = argsdict['rho']*kappa*S/(4*(argsdict['rho']*Omega + \
+                                                                                                          argsdict['mu']*kappa**2))[:,1:]
 
-        Gtilde[2, 2][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = args.rho*kappa*S/(4*(args.rho*Omega + \
-                                                                                                          args.mu*kappa**2))[:,:-1]
+        Gtilde[2, 2][(np.arange(Ftilde.shape[2]-1), np.arange(1, Ftilde.shape[3]))] = argsdict['rho']*kappa*S/(4*(argsdict['rho']*Omega + \
+                                                                                                          argsdict['mu']*kappa**2))[:,:-1]
 
         return Ftilde,Gtilde
 
 #Rayleigh quotient iteration for the viscid floquet problem
-def rayleigh(omega_0, v0, w0, args):
+def rayleigh(omega_0, v0, w0, argsdict):
     vn=v0
     wn=w0
 
@@ -318,27 +318,27 @@ def rayleigh(omega_0, v0, w0, args):
     vns=[]
     wns=[]
     omega=omega_0
-    for n in range(args.itmax):
-        E_n=viscid_mat(omega, args)
-        dE=(viscid_mat(omega+args.domega_fd,args)-E_n)/args.domega_fd
-        if args.dim==1:
-            flat=np.transpose(E_n,(0,2,4,1,3,5)).reshape((2*(2*args.Nt+1)*(2*args.Nx+1),2*(2*args.Nt+1)*(2*args.Nx+1)))
-            bflat=np.einsum("kKlLmM,KLM",dE,vn).reshape(2*(2*args.Nt+1)*(2*args.Nx+1))
-            btflat=np.einsum("kKlLmM,klm",dE,wn).reshape(2*(2*args.Nt+1)*(2*args.Nx+1))
-        if args.dim==2:
-            flat=np.transpose(E_n,(0,2,4,6,1,3,5,7)).reshape((3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1),3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1)))
-            bflat=np.einsum("kKlLmMnN,KLMN",dE,vn).reshape(3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1))
-            btflat=np.einsum("kKlLmMnN,klmn",dE,wn).reshape(3*(2*args.Nt+1)*(2*args.Nx+1)*(2*args.Ny+1))
+    for n in range(argsdict['itmax']):
+        E_n=viscid_mat(omega, argsdict)
+        dE=(viscid_mat(omega+argsdict['domega_fd'],argsdict)-E_n)/argsdict['domega_fd']
+        if argsdict['dim']==1:
+            flat=np.transpose(E_n,(0,2,4,1,3,5)).reshape((2*(2*argsdict['Nt']+1)*(2*argsdict['Nx']+1),2*(2*argsdict['Nt']+1)*(2*argsdict['Nx']+1)))
+            bflat=np.einsum("kKlLmM,KLM",dE,vn).reshape(2*(2*argsdict['Nt']+1)*(2*argsdict['Nx']+1))
+            btflat=np.einsum("kKlLmM,klm",dE,wn).reshape(2*(2*argsdict['Nt']+1)*(2*argsdict['Nx']+1))
+        if argsdict['dim']==2:
+            flat=np.transpose(E_n,(0,2,4,6,1,3,5,7)).reshape((3*(2*argsdict['Nt']+1)*(2*argsdict['Nx']+1)*(2*argsdict['Ny']+1),3*(2*argsdict['Nt']+1)*(2*argsdict['Nx']+1)*(2*argsdict['Ny']+1)))
+            bflat=np.einsum("kKlLmMnN,KLMN",dE,vn).reshape(3*(2*argsdict['Nt']+1)*(2*argsdict['Nx']+1)*(2*argsdict['Ny']+1))
+            btflat=np.einsum("kKlLmMnN,klmn",dE,wn).reshape(3*(2*argsdict['Nt']+1)*(2*argsdict['Nx']+1)*(2*argsdict['Ny']+1))
         try:
             xi=solve(flat, bflat)
             zeta=solve(flat.T, btflat)
-            if args.dim==1:
-                xi=xi.reshape(2,(2*args.Nt+1),(2*args.Nx+1))
-                zeta=zeta.reshape(2,(2*args.Nt+1),(2*args.Nx+1))
+            if argsdict['dim']==1:
+                xi=xi.reshape(2,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1))
+                zeta=zeta.reshape(2,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1))
                 domega=-np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn)
-            if args.dim==2:
-                xi=xi.reshape(3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1))
-                zeta=zeta.reshape(3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1))
+            if argsdict['dim']==2:
+                xi=xi.reshape(3,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1),(2*argsdict['Ny']+1))
+                zeta=zeta.reshape(3,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1),(2*argsdict['Ny']+1))
                 domega=-np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmMnN,KLMN,klmn",dE,vn,wn)
 
             omega=omega+domega
@@ -349,9 +349,9 @@ def rayleigh(omega_0, v0, w0, args):
             wns=wns+[wn]
         # except LinAlgWarning:
         except LinAlgError:
-            if args.dim==1:
+            if argsdict['dim']==1:
                 domega=-np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn)
-            if args.dim==2:
+            if argsdict['dim']==2:
                 domega=-np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmMnN,KLMN,klmn",dE,vn,wn)
 
             omega=omega+domega
@@ -360,9 +360,9 @@ def rayleigh(omega_0, v0, w0, args):
             wns=wns+[wn]
             break
 
-    if args.dim==1:
+    if argsdict['dim']==1:
         print(n, omega, np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn))
-    if args.dim==2:
+    if argsdict['dim']==2:
         print(n, omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn))
     # return omegas[-1],vns[-1],wns[-1]
     return omegas,vns,wns
@@ -399,105 +399,105 @@ if __name__ == "__main__":
     parser.add_argument("--negatives", type=int, required=False, default=1, dest='negatives', help='Include negative frequencies')
 
     args = parser.parse_args()
+    argsdict=args.__dict__
 
-    if not args.dim==1 and not args.dim==2:
+    if not argsdict['dim']==1 and not argsdict['dim']==2:
         print('Dimension must be 1 or 2')
         exit(0)
 
     #If no initial modes exist, use the lowest frequency inviscid modes to start
-    # if not os.path.isfile(args.filebase+'evals.npy') or not os.path.isfile(args.filebase+'evecs.npy'):
-    print(args)
-    json=json.dumps(args.__dict__)
-    f=open(args.filebase+'args.json','w')
+    print(argsdict)
+    json=json.dumps(argsdict)
+    f=open(argsdict['filebase']+'argsdict.json','w')
     f.write(json)
     f.close()
-    As=args.As
-    args.As=0
-    F,G=inviscid_mat(args)
-    if args.dim==1:
+    As=argsdict['As']
+    argsdict['As']=0
+    F,G=inviscid_mat(argsdict)
+    if argsdict['dim']==1:
         Fflattened=F[0,0]
         Gflattened=G[0,0]
-    elif args.dim==2:
-        Fflattened=np.transpose(F[0,0],(0,2,1,3)).reshape(((2*args.Nx+1)*(2*args.Ny+1),(2*args.Nx+1)*(2*args.Ny+1)))
-        Gflattened=np.transpose(G[0,0],(0,2,1,3)).reshape(((2*args.Nx+1)*(2*args.Ny+1),(2*args.Nx+1)*(2*args.Ny+1)))
+    elif argsdict['dim']==2:
+        Fflattened=np.transpose(F[0,0],(0,2,1,3)).reshape(((2*argsdict['Nx']+1)*(2*argsdict['Ny']+1),(2*argsdict['Nx']+1)*(2*argsdict['Ny']+1)))
+        Gflattened=np.transpose(G[0,0],(0,2,1,3)).reshape(((2*argsdict['Nx']+1)*(2*argsdict['Ny']+1),(2*argsdict['Nx']+1)*(2*argsdict['Ny']+1)))
     evals,levecs,revecs=eig(Fflattened,Gflattened,left=True)
 
-    inds=np.argsort(-evals)[:args.nmodes]
+    inds=np.argsort(-evals)[:argsdict['nmodes']]
     omegas=[]
     vns=[]
     wns=[]
-    for i in range(args.nmodes):
+    for i in range(argsdict['nmodes']):
         ind=inds[i]
-        if args.dim==1:
+        if argsdict['dim']==1:
             v0_inviscid=revecs[:,ind]
             # w0_inviscid=np.conjugate(levecs[:,ind])
             w0_inviscid=1
-            v=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
-            w=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
+            v=np.zeros((2,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1)),dtype=np.complex128)
+            w=np.zeros((2,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1)),dtype=np.complex128)
 
-        elif args.dim==2:
-            v0_inviscid=revecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1)))
-            # w0_inviscid=np.conjugate(levecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1))))
+        elif argsdict['dim']==2:
+            v0_inviscid=revecs[:,ind].reshape(((2*argsdict['Nx']+1),(2*argsdict['Ny']+1)))
+            # w0_inviscid=np.conjugate(levecs[:,ind].reshape(((2*argsdict['Nx']+1),(2*argsdict['Ny']+1))))
             w0_inviscid=1
-            v=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
-            w=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
+            v=np.zeros((3,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1),(2*argsdict['Ny']+1)),dtype=np.complex128)
+            w=np.zeros((3,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1),(2*argsdict['Ny']+1)),dtype=np.complex128)
 
         omega_inviscid=(-evals[ind])**0.5
         print(omega_inviscid)
-        if args.dim==1:
-            v[1,args.Nt]=v0_inviscid
-            w[1,args.Nt]=w0_inviscid
-        if args.dim==2:
-            v[2,args.Nt]=v0_inviscid
-            w[2,args.Nt]=w0_inviscid
+        if argsdict['dim']==1:
+            v[1,argsdict['Nt']]=v0_inviscid
+            w[1,argsdict['Nt']]=w0_inviscid
+        if argsdict['dim']==2:
+            v[2,argsdict['Nt']]=v0_inviscid
+            w[2,argsdict['Nt']]=w0_inviscid
 
 
         #Should we iteratively increase as through num steps here??
-        # omegas_i,vns_i,wns_i=rayleigh(omega_inviscid,v,w,args)
+        # omegas_i,vns_i,wns_i=rayleigh(omega_inviscid,v,w,argsdict)
         omega=omega_inviscid
-        args.As=0
-        for it in range(args.num):
-            args.As += As/args.num
-            print(args.As)
-            omegas_i,vns_i,wns_i=rayleigh(omega,v,w,args)
+        argsdict['As']=0
+        for it in range(argsdict['num']):
+            argsdict['As'] += As/argsdict['num']
+            print(argsdict['As'])
+            omegas_i,vns_i,wns_i=rayleigh(omega,v,w,argsdict)
             omega=omegas_i[-1]
             v=vns_i[-1]
             w=wns_i[-1]
-        print(args.As)
+        print(argsdict['As'])
         omegas=omegas+[omegas_i[-1]]
         vns=vns+[vns_i[-1]]
         wns=wns+[wns_i[-1]]
-    if args.negatives:
-        for i in range(args.nmodes):
+    if argsdict['negatives']:
+        for i in range(argsdict['nmodes']):
             ind=inds[i]
-            if args.dim==1:
+            if argsdict['dim']==1:
                 v0_inviscid=revecs[:,ind]
                 # w0_inviscid=np.conjugate(levecs[:,ind])
                 w0_inviscid=1
-                v=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
-                w=np.zeros((2,(2*args.Nt+1),(2*args.Nx+1)),dtype=np.complex128)
+                v=np.zeros((2,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1)),dtype=np.complex128)
+                w=np.zeros((2,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1)),dtype=np.complex128)
 
-            elif args.dim==2:
-                v0_inviscid=revecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1)))
-                # w0_inviscid=np.conjugate(levecs[:,ind].reshape(((2*args.Nx+1),(2*args.Ny+1))))
+            elif argsdict['dim']==2:
+                v0_inviscid=revecs[:,ind].reshape(((2*argsdict['Nx']+1),(2*argsdict['Ny']+1)))
+                # w0_inviscid=np.conjugate(levecs[:,ind].reshape(((2*argsdict['Nx']+1),(2*argsdict['Ny']+1))))
                 w0_inviscid=1
-                v=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
-                w=np.zeros((3,(2*args.Nt+1),(2*args.Nx+1),(2*args.Ny+1)),dtype=np.complex128)
+                v=np.zeros((3,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1),(2*argsdict['Ny']+1)),dtype=np.complex128)
+                w=np.zeros((3,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1),(2*argsdict['Ny']+1)),dtype=np.complex128)
             omega_inviscid=-(-evals[ind])**0.5
             print(omega_inviscid)
-            if args.dim==1:
-                v[1,args.Nt]=v0_inviscid
-                w[1,args.Nt]=w0_inviscid
-            if args.dim==2:
-                v[2,args.Nt]=v0_inviscid
-                w[2,args.Nt]=w0_inviscid
+            if argsdict['dim']==1:
+                v[1,argsdict['Nt']]=v0_inviscid
+                w[1,argsdict['Nt']]=w0_inviscid
+            if argsdict['dim']==2:
+                v[2,argsdict['Nt']]=v0_inviscid
+                w[2,argsdict['Nt']]=w0_inviscid
 
-            args.As=0
+            argsdict['As']=0
             omega=omega_inviscid
-            for it in range(args.num):
-                args.As += As/args.num
-                print(args.As)
-                omegas_i,vns_i,wns_i=rayleigh(omega,v,w,args)
+            for it in range(argsdict['num']):
+                argsdict['As'] += As/argsdict['num']
+                print(argsdict['As'])
+                omegas_i,vns_i,wns_i=rayleigh(omega,v,w,argsdict)
                 omega=omegas_i[-1]
                 v=vns_i[-1]
                 w=wns_i[-1]
@@ -505,15 +505,15 @@ if __name__ == "__main__":
             vns=vns+[vns_i[-1]]
             wns=wns+[wns_i[-1]]
     #save the matrices to with the filebase prefix
-    np.save(args.filebase+"evals.npy",np.array(omegas))
-    np.save(args.filebase+"evecs.npy",[np.array(vns),np.array(wns)])
+    np.save(argsdict['filebase']+"evals.npy",np.array(omegas))
+    np.save(argsdict['filebase']+"evecs.npy",[np.array(vns),np.array(wns)])
 
     #Continuation along ad.
-    ad0=args.ad
-    omegas=np.load(args.filebase+'evals.npy')
-    revecs,levecs=np.load(args.filebase+'evecs.npy')
+    ad0=argsdict['ad']
+    omegas=np.load(argsdict['filebase']+'evals.npy')
+    revecs,levecs=np.load(argsdict['filebase']+'evecs.npy')
     for i in range(len(omegas)):
-        args.ad=ad0
+        argsdict['ad']=ad0
         omegan=[omegas[i]]
         vn=[revecs[i]]
         wn=[levecs[i]]
@@ -521,20 +521,20 @@ if __name__ == "__main__":
         vns=[vn[-1]]
         wns=[wn[-1]]
 
-        for it in range(args.num):
-            args.ad += args.g*args.dad/args.num
-            print(args.ad)
-            omegan,vn,wn=rayleigh(omegan[-1],vn[-1],wn[-1],args)
+        for it in range(argsdict['num']):
+            argsdict['ad'] += argsdict['g']*argsdict['dad']/argsdict['num']
+            print(argsdict['ad'])
+            omegan,vn,wn=rayleigh(omegan[-1],vn[-1],wn[-1],argsdict)
             omegans=omegans+[omegan[-1]]
             vns=vns+[vn[-1]]
             wns=wns+[wn[-1]]
 
-        np.save(args.filebase+"evals_cont"+str(i)+".npy",np.array(omegans))
-        np.save(args.filebase+"evecs_cont"+str(i)+".npy",[np.array(vns),np.array(wns)])
+        np.save(argsdict['filebase']+"evals_cont"+str(i)+".npy",np.array(omegans))
+        np.save(argsdict['filebase']+"evecs_cont"+str(i)+".npy",[np.array(vns),np.array(wns)])
 
 else:
     #For benchmarking in jupyter
-    class args:
+    class argsdict:
         Nx=5
         Ny=5
         Nt=5
