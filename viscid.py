@@ -8,6 +8,7 @@ from scipy.linalg import eig
 from scipy.special import iv
 from scipy.linalg import solve
 from scipy.linalg import LinAlgWarning
+from scipy.linalg import LinAlgError
 import warnings
 warnings.filterwarnings("ignore",category=LinAlgWarning)
 # warnings.filterwarnings("error",category=LinAlgWarning)
@@ -346,7 +347,8 @@ def rayleigh(omega_0, v0, w0, args):
             omegas=omegas+[omega]
             vns=vns+[vn]
             wns=wns+[wn]
-        except LinAlgWarning:
+        # except LinAlgWarning:
+        except LinAlgError:
             if args.dim==1:
                 domega=-np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn)
             if args.dim==2:
