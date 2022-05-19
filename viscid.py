@@ -363,7 +363,7 @@ def rayleigh(omega_0, v0, w0, argsdict):
     if argsdict['dim']==1:
         print(n, omega, np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn))
     if argsdict['dim']==2:
-        print(n, omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn))
+        print(n, omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmMnN,KLMN,klmn",dE,vn,wn))
     # return omegas[-1],vns[-1],wns[-1]
     return omegas,vns,wns
 
