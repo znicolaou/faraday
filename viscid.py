@@ -364,7 +364,6 @@ def rayleigh(omega_0, v0, w0, argsdict):
         print(n, omega, np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn))
     if argsdict['dim']==2:
         print(n, omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmMnN,KLMN,klmn",dE,vn,wn))
-    # return omegas[-1],vns[-1],wns[-1]
     return omegas,vns,wns
 
 #include this in case we want to import functions here elsewhere, in a jupyter notebook for example.
@@ -534,7 +533,7 @@ if __name__ == "__main__":
 
 else:
     #For benchmarking in jupyter
-    class argsdict:
+    class args:
         Nx=5
         Ny=5
         Nt=5
