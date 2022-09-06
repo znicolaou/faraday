@@ -1,22 +1,59 @@
 #include "auto_f2c.h"
-#define PI 3.14159265359
+#include <stdio.h>
+#include <stdlib.h>
 
-int func (integer ndim, const doublereal *w, const integer *icp,
+#define PI 3.14159265359
+int count=0;
+
+int func (integer ndim, const doublereal *u, const integer *icp,
           const doublereal *par, integer ijac,
           doublereal *f, doublereal *dfdu, doublereal *dfdp)
 {
+  count=count+1;
   /* System generated locals */
   integer dfdu_dim1 = ndim;
   integer dfdp_dim1 = ndim;
   double amp = par[0];
-  double omega = par[1];
+  double freq = par[1];
   double k= par[2];
+  printf("%i\t%e\t%e\t%e\t%e\t%e\n",count,amp,freq,k,u[ndim-2],u[ndim-1]);
+  fflush(stdout);
+
+
+  //write the state to autou.txt
+  FILE *fileout;
+  fileout = fopen("autou.txt","w");
+  int result;
+  for (int i=0; i<ndim; i++)
+    result=fprintf(fileout,"%e\n", u[i]);
+  fclose(fileout);
+
   //system call to viscid.py
+  char str[512];
+  sprintf(str, "./viscid_mat.py --filebase auto --acceleration %f --frequency %f --kx %f --strpnt 0", amp, freq, k);
+  int call=system(str);
+
+  //read the functions from to autof.txt
+  FILE *filein;
+  filein = fopen("autof.txt","r");
+  for (int i=0; i<ndim; i++)
+    result=fscanf(filein,"%lf", &f[i]);
+  fclose(filein);
 
   if (ijac == 0) {
     return 0;
   }
 
+  //read the jacobian from to autoJ.txt
+  filein = fopen("autoJ.txt","r");
+  for (int i=0; i<ndim; i++){
+    for (int j=0; j<ndim; j++){
+      doublereal temp;
+      result=fscanf(filein,"%lf", &temp);
+      ARRAY2D(dfdu,i,j)=temp;
+    }
+  }
+  fclose(filein);
 
   if (ijac == 1) {
     return 0;
@@ -29,20 +66,28 @@ int func (integer ndim, const doublereal *w, const integer *icp,
 int stpnt (integer ndim, doublereal t,
            doublereal *u, doublereal *par)
 {
-  par[0] = 0.05;
-  par[1] = 3.5;
-  par[2]=0.2;
-  int j, N = (ndim-2)/6;
-  for (j=0; j<N; j++){
-      u[0*N+j]=1.0;
-      u[1*N+j]=0;
-      u[2*N+j]=0;
-      u[3*N+j]=1.0;
-      u[4*N+j]=0;
-      u[5*N+j]=0;
-  }
-  u[6*N]=1;
-  u[6*N+1]=0;
+  par[0]=0;
+  par[1]=5.0;
+  par[2]=1.57079632679;
+  double amp = par[0];
+  double freq = par[1];
+  double k= par[2];
+
+  //system call to viscid.py
+  char str[512];
+  sprintf(str, "./viscid_mat.py --filebase auto --acceleration %f --frequency %f --kx %f --strpnt 1", amp, freq, k);
+  fflush(stdout);
+  int call=system(str);
+
+  //read the state from to autou.txt
+  FILE *file;
+  int result;
+  file = fopen("autou.txt","r");
+  for (int i=0; i<ndim; i++)
+    result=fscanf(file,"%lf", &u[i]);
+  fclose(file);
+
+
   return 0;
 }
 /* ---------------------------------------------------------------------- */
