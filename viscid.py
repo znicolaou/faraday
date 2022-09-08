@@ -347,7 +347,6 @@ def rayleigh(omega_0, v0, w0, argsdict):
             omegas=omegas+[omega]
             vns=vns+[vn]
             wns=wns+[wn]
-        # except LinAlgWarning:
         except LinAlgError:
             if argsdict['dim']==1:
                 domega=-np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn)
@@ -359,11 +358,21 @@ def rayleigh(omega_0, v0, w0, argsdict):
             vns=vns+[vn]
             wns=wns+[wn]
             break
+        if n>1:
+            dv=(np.abs(vns[n])-np.abs(vns[n-1])).reshape(np.product(vn.shape))
+            dw=(np.abs(wns[n])-np.abs(wns[n-1])).reshape(np.product(wn.shape))
+            verr=np.linalg.norm(dv,ord=np.inf)/(1+np.linalg.norm(vn.reshape(np.product(vn.shape)),ord=np.inf))
+            werr=np.linalg.norm(dw,ord=np.inf)/(1+np.linalg.norm(wn.reshape(np.product(vn.shape)),ord=np.inf))
+            omegaerr=np.abs(domega)/(1+np.abs(omega))
+            print("n=%i dv=%e dw=%e dl=%e"%(n, verr, werr, omegaerr))
+            if verr<1e-8 and werr<1e-8 and omegaerr<1e-8:
+                break
 
-    if argsdict['dim']==1:
-        print(n, omega, np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn))
-    if argsdict['dim']==2:
-        print(n, omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmMnN,KLMN,klmn",dE,vn,wn))
+
+    # if argsdict['dim']==1:
+    #     print(omega, np.einsum("kKlLmM,KLM,klm",E_n,vn,wn)/np.einsum("kKlLmM,KLM,klm",dE,vn,wn))
+    # if argsdict['dim']==2:
+    #     print(omega, np.einsum("kKlLmMnN,KLMN,klmn",E_n,vn,wn)/np.einsum("kKlLmMnN,KLMN,klmn",dE,vn,wn))
     return omegas,vns,wns
 
 #include this in case we want to import functions here elsewhere, in a jupyter notebook for example.
@@ -391,7 +400,7 @@ if __name__ == "__main__":
     parser.add_argument("--Nx", type=int, required=False, default=5, dest='Nx', help='Number of modes to include the Floquet expansion for spatial x')
     parser.add_argument("--Ny", type=int, required=False, default=5, dest='Ny', help='Number of modes to include the Floquet expansion for spatial y')
     parser.add_argument("--dim", type=int, required=False, default=2, dest='dim', help='Dimension, 1 or 2. Default 2.')
-    parser.add_argument("--nmodes", type=int, required=False, default=2, dest='nmodes', help='Number of modes to track. Default 2.')
+    parser.add_argument("--nmodes", type=int, required=False, default=1, dest='nmodes', help='Number of modes to track. Default 2.')
     parser.add_argument("--itmax", type=int, required=False, default=5, dest='itmax', help='Number of iterators in acceleration continuation.')
     parser.add_argument("--num", type=int, required=False, default=0, dest='num', help='Number of iterators in acceleration continuation.')
     parser.add_argument("--domega_fd", type=float, required=False, default=0.1, dest='domega_fd', help='Finite difference step')
@@ -452,7 +461,7 @@ if __name__ == "__main__":
 
 
         #Should we iteratively increase as through num steps here??
-        # omegas_i,vns_i,wns_i=rayleigh(omega_inviscid,v,w,argsdict)
+        omegas_i,vns_i,wns_i=rayleigh(omega_inviscid,v,w,argsdict)
         omega=omega_inviscid
         argsdict['As']=0
         for it in range(argsdict['num']):
@@ -553,5 +562,6 @@ else:
         dim=2
         kx=0.5*np.pi
         ky=0
+        itmax=10
         def __str__(self):
             return str(self.__dict__)

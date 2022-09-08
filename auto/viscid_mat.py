@@ -380,25 +380,25 @@ if __name__ == "__main__":
     parser.add_argument("--k1y", type=float, required=False, default=0, dest='k1y', help='Second reciprocal lattice vector y component')
     parser.add_argument("--k2x", type=float, required=False, default=-0.5*np.pi, dest='k2x', help='First reciprocal lattice vector x component')
     parser.add_argument("--k2y", type=float, required=False, default=3**0.5/2*np.pi, dest='k2y', help='First reciprocal lattice vector y component')
-    parser.add_argument("--Nt", type=int, required=False, default=5, dest='Nt', help='Number of modes to include the Floquet expansion for time')
-    parser.add_argument("--Nx", type=int, required=False, default=5, dest='Nx', help='Number of modes to include the Floquet expansion for spatial x')
-    parser.add_argument("--Ny", type=int, required=False, default=5, dest='Ny', help='Number of modes to include the Floquet expansion for spatial y')
+    parser.add_argument("--Nt", type=int, required=False, default=3, dest='Nt', help='Number of modes to include the Floquet expansion for time')
+    parser.add_argument("--Nx", type=int, required=False, default=3, dest='Nx', help='Number of modes to include the Floquet expansion for spatial x')
+    parser.add_argument("--Ny", type=int, required=False, default=3, dest='Ny', help='Number of modes to include the Floquet expansion for spatial y')
     parser.add_argument("--dim", type=int, required=False, default=1, dest='dim', help='Dimension, 1 or 2. Default 1.')
     parser.add_argument("--nmodes", type=int, required=False, default=1, dest='nmodes', help='Number of modes to track. Default 2.')
     parser.add_argument("--itmax", type=int, required=False, default=5, dest='itmax', help='Number of iterators in acceleration continuation.')
     parser.add_argument("--num", type=int, required=False, default=10, dest='num', help='Number of iterators in acceleration continuation.')
-    parser.add_argument("--domega_fd", type=float, required=False, default=0.1, dest='domega_fd', help='Finite difference step')
+    parser.add_argument("--domega_fd", type=float, required=False, default=1e-3, dest='domega_fd', help='Finite difference step')
     parser.add_argument("--negatives", type=int, required=False, default=0, dest='negatives', help='Include negative frequencies')
     parser.add_argument("--strpnt", type=int, required=False, default=1, dest='strpnt', help='Generate initial conditions')
 
     args = parser.parse_args()
     argsdict=args.__dict__
 
+    json=json.dumps(argsdict)
+    f=open(argsdict['filebase']+'argsdict.json','w')
+    f.write(json)
+    f.close()
     if argsdict['strpnt']==1:
-        json=json.dumps(argsdict)
-        f=open(argsdict['filebase']+'argsdict.json','w')
-        f.write(json)
-        f.close()
         As=argsdict['As']
         argsdict['As']=0
         F,G=inviscid_mat(argsdict)
@@ -428,9 +428,11 @@ if __name__ == "__main__":
                 v=np.zeros((3,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1),(2*argsdict['Ny']+1)),dtype=np.complex128)
                 w=np.zeros((3,(2*argsdict['Nt']+1),(2*argsdict['Nx']+1),(2*argsdict['Ny']+1)),dtype=np.complex128)
 
-            omega_inviscid=(-evals[ind])**0.5
+            omega_inviscid=2*np.pi*argsdict['freq']-(-evals[ind])**0.5
+            # omega_inviscid=(-evals[ind])**0.5
             if argsdict['dim']==1:
-                v[1,argsdict['Nt']]=v0_inviscid
+                v[1,argsdict['Nt']-1]=v0_inviscid
+                # v[1,argsdict['Nt']]=v0_inviscid
                 w[1,argsdict['Nt']]=w0_inviscid
             if argsdict['dim']==2:
                 v[2,argsdict['Nt']]=v0_inviscid
@@ -450,41 +452,49 @@ if __name__ == "__main__":
             vns=vns+[vns_i[-1]]
             wns=wns+[wns_i[-1]]
 
-        f1=vns[0]
-        f2=wns[0]
-        n1=np.real(omegas[0])
-        n2=np.imag(omegas[0])
-        f=np.concatenate([np.real(f1.reshape(np.product(f1.shape))),np.imag(f1.reshape(np.product(f1.shape))),np.real(f2.reshape(np.product(f2.shape))),np.imag(f2.reshape(np.product(f2.shape))),[n1],[n2]])
-        np.savetxt(argsdict['filebase']+'u.txt',f)
+        ind=0
+        v=vns[ind]
+        v=np.exp(-1j*np.angle(v[ind,argsdict['Nx'],argsdict['Nt']]))*v
+        n1=np.real(omegas[ind])
+        n2=np.imag(omegas[ind])
+
+        u=np.concatenate([np.real(v.reshape(np.product(v.shape))),np.imag(v.reshape(np.product(v.shape))),[n1], [n2]]) #2n+2 variables
+        np.savetxt(argsdict['filebase']+'u.txt',u)
 
     elif argsdict['strpnt']==0:
-        f=np.loadtxt(argsdict['filebase']+'u.txt')
+        u=np.loadtxt(argsdict['filebase']+'u.txt')
         n = 2*(2*argsdict['Nx']+1)*(2*argsdict['Nt']+1)
-        v=(f[:n]+1j*f[n:2*n]).reshape((2,(2*argsdict['Nx']+1),(2*argsdict['Nt']+1)))
-        w=(f[2*n:3*n]+1j*f[3*n:4*n]).reshape((2,(2*argsdict['Nx']+1),(2*argsdict['Nt']+1)))
-        omega=f[4*n]+1j*f[4*n+1]
+        v=(u[:n]+1j*u[n:2*n]).reshape((2,(2*argsdict['Nx']+1),(2*argsdict['Nt']+1)))
+        omega=u[2*n]+1j*u[2*n+1]
         E=viscid_mat(omega, argsdict)
+        np.random.seed(1)
+        E=E*(1+1e-3*(np.random.normal(size=E.shape)+1j*np.random.normal(size=E.shape)))
         f1=np.einsum("kKlLmM,KLM",E,v)
-        f2=np.einsum("kKlLmM,klm",E,w)
-        n1=np.linalg.norm(v)**2-1
-        n2=np.linalg.norm(w)**2-1
-        f=np.concatenate([np.real(f1.reshape(np.product(f1.shape))),np.imag(f1.reshape(np.product(f1.shape))),np.real(f2.reshape(np.product(f2.shape))),np.imag(f2.reshape(np.product(f2.shape))),[n1],[n2]])
+        n1=np.linalg.norm(v)**2-1 #normalization
+        n2=np.imag(v[0,argsdict['Nx'],argsdict['Nt']]) #phase condition
+        f=np.concatenate([np.real(f1.reshape(np.product(f1.shape))),np.imag(f1.reshape(np.product(f1.shape))),[n1],[n2]])
         np.savetxt(argsdict['filebase']+'f.txt',f)
 
         zeros=np.zeros((n,n))
         zeros2=np.zeros((n))
+        zeros3=np.zeros((v.shape))
+        zeros3[0,argsdict['Nx'],argsdict['Nt']]=1
+        zeros3=zeros3.reshape((n))
+
+
         dE=(viscid_mat(omega+argsdict['domega_fd'],argsdict)-E)/argsdict['domega_fd']
 
         E=E.transpose((1,3,5,0,2,4))
         dE=dE.transpose((1,3,5,0,2,4))
-        ET=np.transpose(E,axes=(3,4,5,0,1,2))
-        dET=np.transpose(dE,axes=(3,4,5,0,1,2))
 
-        jac1=np.concatenate([np.real(E).reshape((n,n)),-np.imag(E).reshape((n,n)),zeros,zeros,(np.einsum("klmKLM,klm", np.real(dE), np.real(v))-np.einsum("klmKLM,klm", np.imag(dE), np.imag(v))).reshape((1,n)),(-np.einsum("klmKLM,klm", np.imag(dE), np.real(v))-np.einsum("klmKLM,klm", np.real(dE), np.imag(v))).reshape((1,n))])
-        jac2=np.concatenate([np.imag(E).reshape((n,n)),np.real(E).reshape((n,n)),zeros,zeros,(np.einsum("klmKLM,klm", np.real(dE), np.imag(v))+np.einsum("klmKLM,klm", np.imag(dE), np.real(v))).reshape((1,n)),(np.einsum("klmKLM,klm", np.real(dE), np.real(v))-np.einsum("klmKLM,klm", np.imag(dE), np.imag(v))).reshape((1,n))])
-        jac3=np.concatenate([zeros,zeros,np.real(ET).reshape((n,n)),-np.imag(ET).reshape((n,n)),(np.einsum("klmKLM,klm", np.real(dET), np.real(w))-np.einsum("klmKLM,klm", np.imag(dET), np.imag(w))).reshape((1,n)),(-np.einsum("klmKLM,klm", np.imag(dET), np.real(w))-np.einsum("klmKLM,klm", np.real(dET), np.imag(w))).reshape((1,n))])
-        jac4=np.concatenate([zeros,zeros,np.imag(ET).reshape((n,n)),np.real(ET).reshape((n,n)),(np.einsum("klmKLM,klm", np.real(dET), np.imag(w))+np.einsum("klmKLM,klm", np.imag(dET), np.real(w))).reshape((1,n)),(np.einsum("klmKLM,klm", np.real(dET), np.real(w))-np.einsum("klmKLM,klm", np.imag(dET), np.imag(w))).reshape((1,n))])
-        jac5=np.concatenate([2*np.real(v).reshape((n)), 2*np.imag(v).reshape((n)),zeros2,zeros2,[0],[0]])[:,np.newaxis]
-        jac6=np.concatenate([zeros2,zeros2,2*np.real(w).reshape((n)), 2*np.imag(w).reshape((n)),[0],[0]])[:,np.newaxis]
-        jac=np.hstack([jac1,jac2,jac3,jac4,jac5,jac6])
+        jac1=np.concatenate([np.real(E).reshape((n,n)),-np.imag(E).reshape((n,n)),(np.einsum("klmKLM,klm", np.real(dE), np.real(v))-np.einsum("klmKLM,klm", np.imag(dE), np.imag(v))).reshape((1,n)),(-np.einsum("klmKLM,klm", np.imag(dE), np.real(v))-np.einsum("klmKLM,klm", np.real(dE), np.imag(v))).reshape((1,n))])
+        jac2=np.concatenate([np.imag(E).reshape((n,n)),np.real(E).reshape((n,n)),(np.einsum("klmKLM,klm", np.real(dE), np.imag(v))+np.einsum("klmKLM,klm", np.imag(dE), np.real(v))).reshape((1,n)),(np.einsum("klmKLM,klm", np.real(dE), np.real(v))-np.einsum("klmKLM,klm", np.imag(dE), np.imag(v))).reshape((1,n))])
+        jac3=np.concatenate([2*np.real(v).reshape((n)), 2*np.imag(v).reshape((n)),[0],[0]])[:,np.newaxis]
+        jac4=np.concatenate([zeros2,zeros3,[0],[0]])[:,np.newaxis]
+        jac=np.hstack([jac1,jac2,jac3,jac4])
         np.savetxt(argsdict['filebase']+'J.txt',jac)
+
+        Ftilde,Gtilde=viscid_boundary (omega, argsdict)
+        f1=np.einsum("kKlLmM,KLM",-Gtilde,v)
+        Jp=np.concatenate([np.real(f1.reshape(np.product(f1.shape))),np.imag(f1.reshape(np.product(f1.shape))),[0],[0]])
+        np.savetxt(argsdict['filebase']+'Jp.txt',Jp)

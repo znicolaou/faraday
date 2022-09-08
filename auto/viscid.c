@@ -16,9 +16,6 @@ int func (integer ndim, const doublereal *u, const integer *icp,
   double amp = par[0];
   double freq = par[1];
   double k= par[2];
-  printf("%i\t%e\t%e\t%e\t%e\t%e\n",count,amp,freq,k,u[ndim-2],u[ndim-1]);
-  fflush(stdout);
-
 
   //write the state to autou.txt
   FILE *fileout;
@@ -32,6 +29,10 @@ int func (integer ndim, const doublereal *u, const integer *icp,
   char str[512];
   sprintf(str, "./viscid_mat.py --filebase auto --acceleration %f --frequency %f --kx %f --strpnt 0", amp, freq, k);
   int call=system(str);
+  if (call != 0){
+    printf("Interrupt %i\n",call);
+    exit(0);
+  }
 
   //read the functions from to autof.txt
   FILE *filein;
@@ -50,7 +51,7 @@ int func (integer ndim, const doublereal *u, const integer *icp,
     for (int j=0; j<ndim; j++){
       doublereal temp;
       result=fscanf(filein,"%lf", &temp);
-      ARRAY2D(dfdu,i,j)=temp;
+      ARRAY2D(dfdu,j,i)=temp;
     }
   }
   fclose(filein);
@@ -58,6 +59,14 @@ int func (integer ndim, const doublereal *u, const integer *icp,
   if (ijac == 1) {
     return 0;
   }
+  filein = fopen("autoJp.txt","r");
+  for (int i=0; i<ndim; i++){
+      doublereal temp;
+      result=fscanf(filein,"%lf", &temp);
+      ARRAY2D(dfdp,i,0)=temp;
+  }
+  fclose(filein);
+
 
   return 0;
 }
@@ -66,7 +75,7 @@ int func (integer ndim, const doublereal *u, const integer *icp,
 int stpnt (integer ndim, doublereal t,
            doublereal *u, doublereal *par)
 {
-  par[0]=0;
+  par[0]=0.1;
   par[1]=5.0;
   par[2]=1.57079632679;
   double amp = par[0];
@@ -99,7 +108,36 @@ int pvls (integer ndim, const doublereal *u,
   integer NDX  = getp("NDX", 0, u);
   integer u_dim1 = NDX;
 
-  par[4]=getp("STA",0,u);
+  par[3]=u[NDX-2];
+  par[4]=u[NDX-1];
+
+  par[6]=getp("BIF",0,u);
+
+  double *vec=malloc(ndim*sizeof(double));
+  for(int i=0; i<ndim; i++){
+    vec[i]=getp("EIG",2*i+1,u)*getp("EIG",2*i+1,u)+getp("EIG",2*i+2,u)*getp("EIG",2*i+2,u);
+  }
+  double min = vec[0];
+  int imin=0;
+  for (int i=0; i<ndim; i++){
+    if (vec[i]<min){
+      min=vec[i];
+      imin=i;
+    }
+  }
+  min = vec[0];
+  int imin2=0;
+  for (int i=0; i<ndim; i++){
+    if (vec[i]<min && i!=imin){
+      min=vec[i];
+      imin2=i;
+    }
+  }
+  par[5]=getp("EIG",2*imin+1,u);
+  par[6]=getp("EIG",2*imin+2,u);
+  par[7]=getp("EIG",2*imin2+1,u);
+  par[8]=getp("EIG",2*imin2+2,u);
+
   return 0;
 }
 
