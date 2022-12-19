@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.8.29)  10 MAY 2022 19:48
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2021) (preloaded format=pdflatex 2021.8.29)  21 SEP 2022 10:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -479,7 +479,7 @@ Class revtex4-1 Warning: Assuming \noaffiliation for authors.
 
 pdfTeX warning: /Library/TeX/texbin/pdflatex (file ./diagram_driven.pdf): PDF i
 nclusion: found PDF version <1.6>, but at most version <1.5> allowed
-<diagram_driven.pdf, id=35, 363.96478pt x 222.74417pt>
+<diagram_driven.pdf, id=39, 363.96478pt x 222.74417pt>
 File: diagram_driven.pdf Graphic file (type pdf)
 <use diagram_driven.pdf>
 Package pdftex.def Info: diagram_driven.pdf  used on input line 20.
@@ -506,28 +506,29 @@ ier (name{equation.2.13}) has been already used, duplicate ignored
                                                   
 l.114 \begin{align}
                    ] [4] [5]
-<hexagonal.pdf, id=186, 1232.605pt x 325.215pt>
+<hexagonal.pdf, id=190, 1232.605pt x 325.215pt>
 File: hexagonal.pdf Graphic file (type pdf)
 <use hexagonal.pdf>
 Package pdftex.def Info: hexagonal.pdf  used on input line 176.
 (pdftex.def)             Requested size: 510.0pt x 134.55975pt.
  [6 <./hexagonal.pdf>]
-<boundaries.pdf, id=305, 902.37125pt x 258.9675pt>
-File: boundaries.pdf Graphic file (type pdf)
-<use boundaries.pdf>
-Package pdftex.def Info: boundaries.pdf  used on input line 223.
-(pdftex.def)             Requested size: 510.0pt x 146.3643pt.
- [7]
+
+LaTeX Warning: Reference `fig3' on page 7 undefined on input line 222.
+
+[7]
 No file viscidnotes.bbl.
-[8 <./boundaries.pdf>] (./viscidnotes.aux)
+[8] (./viscidnotes.aux)
+
+LaTeX Warning: There were undefined references.
+
 Package rerunfilecheck Info: File `viscidnotes.out' has not changed.
-(rerunfilecheck)             Checksum: C12EFFB45A661FAAA8F395FDFD026C0F;1664.
+(rerunfilecheck)             Checksum: 781179F1F910FB130AEF55C47D1AFC32;1955.
  ) 
 Here is how much of TeX's memory you used:
- 11096 strings out of 478994
- 157989 string characters out of 5858184
- 512021 words of memory out of 5000000
- 28348 multiletter control sequences out of 15000+600000
+ 11091 strings out of 478994
+ 157876 string characters out of 5858184
+ 511858 words of memory out of 5000000
+ 28343 multiletter control sequences out of 15000+600000
  413784 words of font info for 65 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  82i,13n,88p,1711b,381s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -552,10 +553,10 @@ ive/2021/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive
 21/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2021
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmti9.pfb></usr/local/texlive/2021/t
 exmf-dist/fonts/type1/public/amsfonts/symbols/msam7.pfb>
-Output written on viscidnotes.pdf (8 pages, 1018686 bytes).
+Output written on viscidnotes.pdf (8 pages, 983438 bytes).
 PDF statistics:
- 450 PDF objects out of 1000 (max. 8388607)
- 367 compressed objects within 4 object streams
+ 418 PDF objects out of 1000 (max. 8388607)
+ 346 compressed objects within 4 object streams
  77 named destinations out of 1000 (max. 500000)
- 72 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 75 words of extra memory for PDF output out of 10000 (max. 10000000)
 
