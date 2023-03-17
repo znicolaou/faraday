@@ -21,9 +21,11 @@ def initialize():
     print(*sys.argv, file=file)
     file.close()
 
-    program="void setup(){Serial.begin(115200);Serial.setTimeout(1);}\nvoid loop(){}\n void serialEvent(){\n"+\
-    "{\n"+\
-    "Serial.read(); unsigned long t_last; int count = 0;\n"+\
+    if board=='arduino:samd:mkrzero':
+        program="void setup(){Serial.begin(115200);Serial.setTimeout(1);ADC->CTRLB.bit.PRESCALER = 0x02;analogReadResolution(12);}\nvoid loop(){"
+    else:
+        program="#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))\n#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))\nvoid setup(){Serial.begin(115200);Serial.setTimeout(1); sbi(ADCSRA, ADPS2);cbi(ADCSRA, ADPS1);cbi(ADCSRA, ADPS0);}\nvoid loop(){"
+    program=program+"double test; test=Serial.read(); if (test != -1){ unsigned long t_last; int count = 0;\n"+\
     (("unsigned short Xvals[%i]; unsigned short Yvals[%i];"%(Nt,Nt)) if xy==1 else "")+\
     ("unsigned short Zvals[%i];\n"%(Nt))+\
     ("unsigned long tvals[%i];\n"%(Nt))+\
@@ -45,13 +47,18 @@ def initialize():
 
     print(sys.platform)
     #Use the newer arduino-cli, and check if the -p port is necessary
-    subprocess.run(["arduino-cli", "compile", "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+    subprocess.run(["arduino-cli", "compile", "--fqbn", board, data+"/"+filebase])
     if(run==1):
-        subprocess.run(["arduino-cli", "upload", "-p", port, "--fqbn", "arduino:avr:uno", data+"/"+filebase])
-        print(*["arduino-cli", "upload", "-p", port, "--fqbn", "arduino:avr:uno", data+"/"+filebase])
+        subprocess.run(["arduino-cli", "upload", "-p", port, "--fqbn", board, data+"/"+filebase])
+        print(*["arduino-cli", "upload", "-p", port, "--fqbn", board, data+"/"+filebase])
 
-    ser = serial.Serial(port=port, baudrate=115200)
-    sleep(1)
+    ser=None
+    while ser is None:
+        try:
+            sleep(1)
+            ser = serial.Serial(port=port, baudrate=115200)
+        except Exception as e:
+            print("Re-opening serial port.")
     return ser
 
 
@@ -78,20 +85,20 @@ def get_sample(ser):
                 ylst.append(int(ser.readline().decode("utf-8")))
             zlst.append(int(ser.readline().decode("utf-8")))
             tlst.append(0.001*int(ser.readline().decode("utf-8")))
-
         #This will depend on the accelerometer
-        amax=5
-        amin=-5
-        vscale=5
+        if board=='arduino:samd:mkrzero':
+            amax=16
+            amin=-16
+            bits=4096
+        else:
+            amax=5
+            amin=-5
+            bits=1024*3.3/5
 
-
-        zlst=-(amin+(amax-amin)/(3.3/vscale*1024)*np.array(zlst))
+        zlst=(amin+(amax-amin)*np.array(zlst)/bits)
         if(xy==1):
-            xlst=amin+(amax-amin)/(3.3/vscale*1024)*np.array(xlst)
-            ylst=amin+(amax-amin)/(3.3/vscale*1024)*np.array(ylst)
-
-
-
+            xlst=amin+(amax-amin)*np.array(xlst)/bits
+            ylst=amin+(amax-amin)*np.array(ylst)/bits
     else:
         if(xy==1):
             xlst=np.load(data+"/"+filebase+"/"+filebase+"x%i"%(count)+".npy")
@@ -147,7 +154,7 @@ def plot_data(count,xlst,ylst,zlst,tlst,acc,freq,phi,c):
         plt.plot(tlst,xlst,'bx',markersize=2.0)
         plt.subplot(234,xlabel="Time (s)",ylabel="Acceleration (g)",title="Y acceleration",ylim=(-0.5,0.5))
         plt.plot(tlst,ylst,'bx',markersize=2.0)
-    plt.subplot(231,xlabel="Time (s)",ylabel="Acceleration (g)",title="Z acceleration",ylim=(-1,3))
+    plt.subplot(231,xlabel="Time (s)",ylabel="Acceleration (g)",title="Z acceleration")
     plt.plot(tlst,np.array([sinfunc(t,acc,freq,phi,c) for t in tlst]),'r')
     plt.plot(tlst,zlst,'bx',markersize=2.0)
     plt.subplot(232,xlabel="Time (s)",ylabel="Acceleration (g)",title="Z residual")
@@ -178,16 +185,17 @@ parser = argparse.ArgumentParser(description='Upload an Arduino sketch and read 
 parser.add_argument("--filebase", type=str, required=True, dest='filebase', help='Base string for file output.')
 parser.add_argument("--directory", type=str, required=False, default='data', dest='data', help='Directory to save files. Default "data".')
 parser.add_argument("--Nt", type=int, required=False, dest='Nt', default=150, help='Number of buffer ints. Default 150.')
-parser.add_argument("--delay", type=float, required=False, dest='delay', default=2.0, help='Delay between samples. Default 2.0.')
+parser.add_argument("--delay", type=float, required=False, dest='delay', default=0.5, help='Delay between samples. Default 0.5.')
 parser.add_argument("--xy", type=int, choices=[0,1], required=False, default=1, dest='xy', help='Flag for x and y output. Default 1.')
-# parser.add_argument("--freq", type=float, required=False, default=0, dest='freq', help='Frequency for fitting')
 parser.add_argument("--run", type=int, choices=[0,1], required=False, default=1, dest='run', help='Flag for running arduino and reading output; if 0, data is read from previous runs if files exist. Default 1.')
 parser.add_argument("--count", type=int, required=False, default=0, dest='count', help='Initial count. Default 0.')
 parser.add_argument("--port", type=str, required=False, default=None, dest='port', help='Arduino port.')
+parser.add_argument("--board", type=str, required=False, default=None, dest='board', help='Arduino fqbn.')
 
 args = parser.parse_args()
 filebase=args.filebase
 port=args.port
+board=args.board
 data=args.data
 Nt=args.Nt
 delay=args.delay
@@ -199,9 +207,15 @@ if port is None:
     boards=subprocess.run(["arduino-cli", "board", "list"],capture_output=True).stdout.split(b'\n')
     for i in range(1,len(boards)):
         line=boards[i].decode().split()
-        if len(line)>=3 and line[2] != "Unknown":
-            port=line[0]
-            print("using port",port)
+        if len(line)>=5:
+            if line[4] != "Unknown":
+                for j in range(5,len(line)):
+                    if line[j].split(':')[0]=='arduino':
+                        port=line[0]
+                        board=line[j]
+                        print("using port",port)
+                        print("using fqbn",board)
+                        break
 
 if port is None and run==1:
     print("No arduino found")
@@ -241,7 +255,7 @@ while True:
             ser = serial.Serial(port=port, baudrate=115200)
             sleep(1)
     elif input=='d\n':
-        print("Enter delay in ms, or 'a' for automatic based on last frequency. Minimum is 0.3.")
+        print("Enter delay in ms, or 'a' for automatic based on last frequency. Minimum is 0.04.")
         line=sys.stdin.readline()
         try:
             if line == 'a\n':
@@ -251,10 +265,11 @@ while True:
         except:
             print("Bad input %s"%(line))
 
-        delay=delay-0.3
+        delay=delay-0.04
         if delay<0:
             delay=0
-        print("Delay set to %f"%(delay+0.3))
+        print("Delay set to %f"%(delay+0.04))
+        ser.close()
         initialize()
     elif input == 'q\n':
         break
